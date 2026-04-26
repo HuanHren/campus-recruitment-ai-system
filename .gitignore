@@ -1,0 +1,16 @@
+target/
+BOOT-INF/
+*.log
+*.class
+
+.idea/
+.vscode/
+*.iml
+
+.DS_Store
+Thumbs.db
+
+node_modules/
+dist/
+
+application-local.yml
