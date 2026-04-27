@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @MapperScan("com.campus.recruitment.mapper")
-@SpringBootApplication
+@SpringBootApplication(excludeName = "org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration")
 public class CampusRecruitmentAiSystemApplication {
 
     public static void main(String[] args) {

@@ -7,7 +7,9 @@
       icon="solar:microphone-3-bold-duotone"
     >
       <template #actions>
-        <el-button type="primary" :loading="loading" @click="submit">重新生成</el-button>
+        <el-button type="primary" :loading="loading" :disabled="loading" @click="submit">
+          {{ loading ? 'AI 正在生成中...' : '重新生成' }}
+        </el-button>
       </template>
     </AppPageHeader>
 
@@ -20,22 +22,35 @@
           <el-form-item label="岗位要求">
             <el-input v-model="form.jobRequirement" type="textarea" :rows="9" />
           </el-form-item>
-          <el-button type="primary" :loading="loading" @click="submit">生成面试题</el-button>
+          <el-button type="primary" :loading="loading" :disabled="loading" @click="submit">
+            {{ loading ? 'AI 正在生成中...' : '生成面试题' }}
+          </el-button>
+          <el-alert
+            v-if="loading"
+            style="margin-top:14px;"
+            type="info"
+            show-icon
+            :closable="false"
+            title="正在生成基础题、项目题和综合题，真实 AI 生成可能需要 30-90 秒。"
+          />
         </el-form>
       </AppPanel>
 
       <AppPanel title="面试题卡片" class="wide-card" :hover="false">
         <template #actions>
-          <el-tag v-if="mock" type="warning" effect="plain">模拟数据</el-tag>
-          <el-tag v-else effect="plain">DeepSeek-V4-Pro</el-tag>
+          <el-tag v-if="source === 'mock'" type="warning" effect="plain">模拟数据</el-tag>
+          <el-tag v-else effect="plain">{{ model || 'DeepSeek-V4-Pro' }}</el-tag>
         </template>
         <div class="grid grid-2" v-auto-animate>
           <div v-for="(question, index) in visibleQuestions" :key="question" class="question-card">
-            <el-tag :style="{ borderColor: questionType(index).color, color: questionType(index).color }" effect="plain">
-              {{ questionType(index).type }}
+            <el-tag :style="{ borderColor: typeColor(question.type || questionType(index).type), color: typeColor(question.type || questionType(index).type) }" effect="plain">
+              {{ question.type || questionType(index).type }}
             </el-tag>
             <h3>第 {{ index + 1 }} 题</h3>
-            <p style="line-height:1.8;margin:0;">{{ question }}</p>
+            <p style="line-height:1.8;margin:0;">{{ question.question || question }}</p>
+            <div v-if="question.answerIdea" style="margin-top:12px;padding:12px;border-radius:14px;background:#f8faff;color:var(--color-text);line-height:1.7;">
+              <strong>参考答题思路：</strong>{{ question.answerIdea }}
+            </div>
           </div>
         </div>
       </AppPanel>
@@ -47,22 +62,21 @@
 import { computed, reactive, ref } from 'vue'
 import AppPageHeader from '../../components/common/AppPageHeader.vue'
 import AppPanel from '../../components/common/AppPanel.vue'
-import request from '../../utils/request'
+import aiRequest from '../../utils/aiRequest'
 import { interviewQuestionTypes } from '../../mock/ai'
 
 const loading = ref(false)
-const mock = ref(false)
+const source = ref('mock')
+const model = ref('deepseek-v4-pro')
 const form = reactive({
   jobName: 'Java 后端开发工程师',
   jobRequirement: '熟悉 Java、Spring Boot、MySQL，具备良好的编码习惯和项目沟通能力。'
 })
 const questions = ref([])
 const fallbackQuestions = [
-  '请介绍 Java 集合框架中 List、Set、Map 的区别，并说明常见使用场景。',
-  '请结合你的项目经历，说明你负责的模块、接口设计和数据库设计思路。',
-  '如果接口响应变慢，你会从哪些方面排查并定位问题？',
-  '请说明 Spring Boot 项目中统一返回、全局异常处理和权限控制的作用。',
-  '如果入职后遇到不熟悉的技术任务，你会如何学习并推进交付？'
+  { type: '基础题', question: '请介绍 Java 集合框架中 List、Set、Map 的区别，并说明常见使用场景。', answerIdea: '从是否有序、是否重复、键值结构和典型实现类回答。' },
+  { type: '项目题', question: '请结合你的项目经历，说明你负责的模块、接口设计和数据库设计思路。', answerIdea: '按照背景、职责、方案、结果的结构回答。' },
+  { type: '综合题', question: '如果接口响应变慢，你会从哪些方面排查问题？', answerIdea: '从日志、SQL、索引、网络、缓存和服务资源角度分析。' }
 ]
 
 const visibleQuestions = computed(() => questions.value.length ? questions.value : fallbackQuestions)
@@ -73,12 +87,17 @@ function questionType(index) {
   return interviewQuestionTypes[2]
 }
 
+function typeColor(type) {
+  return interviewQuestionTypes.find(item => item.type === type)?.color || '#2563EB'
+}
+
 async function submit() {
   loading.value = true
   try {
-    const res = await request.post('/student/ai/interview-questions', form)
-    questions.value = res.data.questions || []
-    mock.value = res.data.mock
+    const res = await aiRequest.post('/student/ai/interview-questions', form)
+    questions.value = res.data.questionCards || (res.data.questions || []).map(item => ({ question: item }))
+    source.value = res.data.source || (res.data.mock ? 'mock' : 'deepseek')
+    model.value = res.data.model || 'deepseek-v4-pro'
   } finally {
     loading.value = false
   }

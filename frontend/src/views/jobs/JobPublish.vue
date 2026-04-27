@@ -27,9 +27,17 @@
         <h3>AI 生成岗位描述</h3>
         <p style="color:#667085;">根据岗位名称、薪资和技能要求生成更适合校园招聘的岗位内容。</p>
         <el-input v-model="skillRequirement" type="textarea" :rows="5" placeholder="请输入技能要求，如 Java、Spring Boot、MySQL" />
-        <el-button style="margin:16px 0;" type="success" :icon="MagicStick" :loading="aiLoading" @click="generate">
-          AI生成
+        <el-button style="margin:16px 0;" type="success" :icon="MagicStick" :loading="aiLoading" :disabled="aiLoading" @click="generate">
+          {{ aiLoading ? 'AI 正在生成中...' : 'AI生成' }}
         </el-button>
+        <el-alert
+          v-if="aiLoading"
+          style="margin-bottom:14px;"
+          type="info"
+          show-icon
+          :closable="false"
+          title="正在生成岗位职责与任职要求，真实 AI 生成可能需要较长时间，请稍候。"
+        />
         <div class="ai-result">{{ aiText || 'AI 生成内容会展示在这里。' }}</div>
       </el-card>
     </div>
@@ -42,6 +50,7 @@ import { ElMessage } from 'element-plus'
 import { MagicStick, Promotion } from '@element-plus/icons-vue'
 import PageHeader from '../../components/PageHeader.vue'
 import request from '../../utils/request'
+import aiRequest from '../../utils/aiRequest'
 
 const saving = ref(false)
 const aiLoading = ref(false)
@@ -56,7 +65,7 @@ const form = reactive({
 async function generate() {
   aiLoading.value = true
   try {
-    const res = await request.post('/company/ai/job-description', {
+    const res = await aiRequest.post('/company/ai/job-description', {
       jobName: form.jobName,
       salaryRange: `${form.salaryMin}-${form.salaryMax}`,
       skillRequirement: skillRequirement.value

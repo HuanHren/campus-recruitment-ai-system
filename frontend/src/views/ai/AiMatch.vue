@@ -23,7 +23,17 @@
           <el-form-item label="岗位要求">
             <el-input v-model="form.jobRequirement" type="textarea" :rows="6" />
           </el-form-item>
-          <el-button type="primary" :loading="loading" @click="submit">分析匹配度</el-button>
+          <el-button type="primary" :loading="loading" :disabled="loading" @click="submit">
+            {{ loading ? 'AI 正在生成中...' : '分析匹配度' }}
+          </el-button>
+          <el-alert
+            v-if="loading"
+            style="margin-top:14px;"
+            type="info"
+            show-icon
+            :closable="false"
+            title="正在分析简历与岗位匹配度，真实 AI 生成可能需要较长时间，请稍候。"
+          />
         </el-form>
       </AppPanel>
     </section>
@@ -31,8 +41,8 @@
     <section class="grid grid-2" style="margin-top:18px;">
       <AppPanel title="匹配结果" :hover="false">
         <template #actions>
-          <el-tag v-if="result.mock" type="warning" effect="plain">模拟数据</el-tag>
-          <el-tag v-else effect="plain">DeepSeek-V4-Pro</el-tag>
+          <el-tag v-if="result.source === 'mock' || result.mock" type="warning" effect="plain">模拟数据</el-tag>
+          <el-tag v-else effect="plain">{{ result.model || 'DeepSeek-V4-Pro' }}</el-tag>
         </template>
         <div class="match-score">
           <div class="score-ring" :style="{ '--score': `${result.matchScore || 0}%` }">
@@ -40,6 +50,7 @@
           </div>
           <div>
             <h3 style="color:var(--title);margin:0 0 10px;">匹配原因</h3>
+            <el-tag effect="plain" style="margin-bottom:10px;">{{ result.matchLevel || '待分析' }}</el-tag>
             <p style="line-height:1.85;margin:0;">{{ result.matchReason || '分析结果会展示在这里。' }}</p>
           </div>
         </div>
@@ -47,8 +58,8 @@
 
       <AppPanel title="技能标签匹配" desc="展示简历能力与岗位关键词之间的覆盖情况" :hover="false">
         <div class="tag-row">
-          <el-tag v-for="item in skillMatchTags" :key="item.label" :type="item.matched ? 'success' : 'info'" effect="plain">
-            {{ item.label }}{{ item.matched ? ' 已覆盖' : ' 待补充' }}
+          <el-tag v-for="item in visibleSkillTags" :key="item.label || item" :type="tagMatched(item) ? 'success' : 'info'" effect="plain">
+            {{ typeof item === 'string' ? item : item.label }}{{ typeof item === 'string' ? '' : (item.matched ? ' 已覆盖' : ' 待补充') }}
           </el-tag>
         </div>
         <el-divider />
@@ -58,6 +69,10 @@
             {{ item }}
           </el-timeline-item>
         </el-timeline>
+        <el-divider />
+        <h3 style="color:var(--title);">学习建议</h3>
+        <AppTagGroup :tags="result.learningSuggestions || []" />
+        <p v-if="result.recommendReason" style="line-height:1.8;margin-top:14px;">{{ result.recommendReason }}</p>
       </AppPanel>
     </section>
   </div>
@@ -68,7 +83,7 @@ import { computed, reactive, ref } from 'vue'
 import AppPageHeader from '../../components/common/AppPageHeader.vue'
 import AppPanel from '../../components/common/AppPanel.vue'
 import AppTagGroup from '../../components/common/AppTagGroup.vue'
-import request from '../../utils/request'
+import aiRequest from '../../utils/aiRequest'
 import { skillMatchTags } from '../../mock/ai'
 
 const loading = ref(false)
@@ -77,16 +92,24 @@ const form = reactive({
   jobRequirement: '要求熟悉 Java、Spring Boot、MySQL，有项目开发经验和良好的沟通能力。'
 })
 const result = reactive({ matchScore: 0, matchReason: '', suggestions: [], mock: false })
+const visibleSkillTags = computed(() => result.skillTags?.length ? result.skillTags : skillMatchTags)
 const normalizedSuggestions = computed(() => {
   return result.suggestions?.length
     ? result.suggestions
     : ['补充项目成果的量化描述。', '强化岗位关键词，例如 Spring Security、MySQL 优化。', '准备与岗位要求相关的面试案例。']
 })
 
+function tagMatched(item) {
+  if (typeof item === 'string') {
+    return item.includes('已匹配') || item.includes('已覆盖')
+  }
+  return item.matched
+}
+
 async function submit() {
   loading.value = true
   try {
-    const res = await request.post('/student/ai/job-match', form)
+    const res = await aiRequest.post('/student/ai/job-match', form)
     Object.assign(result, res.data)
   } finally {
     loading.value = false

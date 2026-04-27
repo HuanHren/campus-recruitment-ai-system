@@ -8,10 +8,13 @@ import com.campus.recruitment.vo.AiInterviewQuestionVO;
 import com.campus.recruitment.vo.AiJobDescriptionVO;
 import com.campus.recruitment.vo.AiJobMatchVO;
 import com.campus.recruitment.vo.AiResumeOptimizeVO;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 public interface AiService {
 
     AiResumeOptimizeVO optimizeResume(Long userId, AiResumeOptimizeRequest request);
+
+    SseEmitter streamOptimizeResume(Long userId, AiResumeOptimizeRequest request);
 
     AiJobMatchVO analyzeJobMatch(Long userId, AiJobMatchRequest request);
 
