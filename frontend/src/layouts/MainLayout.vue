@@ -2,7 +2,7 @@
   <div class="app-shell" :class="{ 'is-collapsed': collapsed }">
     <aside class="sidebar">
       <div class="layout-brand">
-        <span class="brand-mark"><el-icon><Cpu /></el-icon></span>
+        <span class="brand-mark"><Icon icon="solar:cpu-bolt-bold-duotone" /></span>
         <span class="brand-text">
           AI 校园招聘
           <small>DeepSeek 智能平台</small>
@@ -10,7 +10,7 @@
       </div>
 
       <button class="collapse-btn" type="button" @click="collapsed = !collapsed">
-        <el-icon><component :is="collapsed ? Expand : Fold" /></el-icon>
+        <Icon :icon="collapsed ? 'solar:sidebar-code-bold-duotone' : 'solar:sidebar-minimalistic-bold-duotone'" />
         <span class="collapse-label">{{ collapsed ? '展开菜单' : '折叠菜单' }}</span>
       </button>
 
@@ -62,14 +62,15 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { Icon } from '@iconify/vue'
+import { useDateFormat, useNow, useWindowSize } from '@vueuse/core'
+import dayjs from 'dayjs'
 import { useAuthStore } from '../stores/auth'
 import {
   Briefcase,
   Cpu,
   DataAnalysis,
   Document,
-  Expand,
-  Fold,
   HomeFilled,
   MagicStick,
   OfficeBuilding,
@@ -82,7 +83,10 @@ import {
 
 const router = useRouter()
 const auth = useAuthStore()
-const collapsed = ref(false)
+const { width } = useWindowSize()
+const collapsed = ref(width.value < 1280)
+const now = useNow()
+const dateText = useDateFormat(now, 'YYYY年MM月DD日')
 
 const roleMap = {
   ADMIN: '管理员',
@@ -151,7 +155,10 @@ const groupedMenus = {
 const menus = computed(() => groupedMenus[auth.role] || [])
 const roleName = computed(() => roleMap[auth.role] || '用户')
 const greeting = computed(() => `${roleName.value}工作台`)
-const today = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })
+const today = computed(() => {
+  const week = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'][dayjs(now.value).day()]
+  return `${dateText.value} ${week}`
+})
 
 function logout() {
   auth.logout()

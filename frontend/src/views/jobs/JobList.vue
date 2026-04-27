@@ -1,55 +1,104 @@
 <template>
-  <div class="page">
-    <PageHeader title="岗位列表页面" desc="按角色展示岗位数据：学生浏览岗位，企业管理岗位，管理员审核岗位。">
-      <el-button v-if="role === 'COMPANY'" type="primary" :icon="Plus" @click="$router.push('/job-publish')">发布岗位</el-button>
-    </PageHeader>
-    <el-card class="glass-card content-card" shadow="never">
-      <el-alert :title="roleTip.title" :description="roleTip.desc" :type="roleTip.type" show-icon :closable="false" style="margin-bottom:16px;" />
-      <div class="toolbar">
-        <el-input v-model="filters.keyword" placeholder="岗位名称 / 城市 / 学历" style="width:240px;" clearable />
-        <el-input v-if="role === 'STUDENT'" v-model="filters.city" placeholder="城市" style="width:160px;" clearable />
-        <el-input v-if="role === 'STUDENT'" v-model="filters.education" placeholder="学历" style="width:160px;" clearable />
-        <el-select v-if="role !== 'STUDENT'" v-model="filters.auditStatus" placeholder="审核状态" clearable style="width:160px;">
-          <el-option label="待审核" value="PENDING" />
-          <el-option label="已通过" value="APPROVED" />
-          <el-option label="已驳回" value="REJECTED" />
-        </el-select>
-        <el-button type="primary" :icon="Search" @click="load">查询</el-button>
-      </div>
-      <el-table :data="rows" class="soft-table" v-loading="loading">
-        <template #empty>
-          <div class="empty-state">
-            <el-empty description="暂时没有匹配的岗位，换个筛选条件试试" />
+  <div class="page" v-auto-animate>
+    <AppPageHeader
+      title="岗位列表页面"
+      desc="按角色展示岗位数据：学生浏览岗位，企业管理岗位，管理员审核岗位。"
+      eyebrow="招聘岗位管理"
+      icon="solar:case-round-bold-duotone"
+    >
+      <template #actions>
+        <el-button v-if="role === 'COMPANY'" type="primary" @click="$router.push('/job-publish')">
+          发布岗位
+        </el-button>
+      </template>
+    </AppPageHeader>
+
+    <AppDataTable
+      style="margin-top:18px;"
+      :data="rows"
+      :loading="loading"
+      empty-title="暂无匹配岗位"
+      empty-desc="请调整岗位名称、城市、学历或审核状态后重新查询。"
+    >
+      <template #toolbar>
+        <AppToolbar>
+          <el-input v-model="filters.keyword" placeholder="岗位名称 / 城市 / 学历" style="width:260px;" clearable />
+          <el-input v-if="role === 'STUDENT'" v-model="filters.city" placeholder="城市" style="width:150px;" clearable />
+          <el-input v-if="role === 'STUDENT'" v-model="filters.education" placeholder="学历" style="width:150px;" clearable />
+          <el-select v-if="role !== 'STUDENT'" v-model="filters.auditStatus" placeholder="审核状态" clearable style="width:160px;">
+            <el-option label="待审核" value="PENDING" />
+            <el-option label="已通过" value="APPROVED" />
+            <el-option label="已驳回" value="REJECTED" />
+          </el-select>
+          <el-button type="primary" @click="load">查询岗位</el-button>
+          <el-tag effect="plain">{{ roleTip }}</el-tag>
+        </AppToolbar>
+      </template>
+
+      <el-table-column label="岗位名称" min-width="190">
+        <template #default="{ row }">
+          <strong style="color:var(--title);">{{ row.jobName }}</strong>
+          <div class="muted" style="font-size:12px;margin-top:4px;">{{ row.jobType || '校园招聘' }}</div>
+        </template>
+      </el-table-column>
+      <el-table-column label="企业" min-width="180">
+        <template #default="{ row }">
+          <div style="display:flex;align-items:center;gap:9px;">
+            <Icon icon="solar:buildings-2-bold-duotone" style="color:#2563EB;font-size:20px;" />
+            <span>{{ row.companyName || '待展示企业' }}</span>
           </div>
         </template>
-        <el-table-column prop="jobName" label="岗位名称" min-width="160" />
-        <el-table-column prop="companyName" label="企业" min-width="160" />
-        <el-table-column prop="city" label="城市" width="100" />
-        <el-table-column label="薪资" width="150">
-          <template #default="{ row }">{{ row.salaryMin }} - {{ row.salaryMax }}</template>
-        </el-table-column>
-        <el-table-column prop="education" label="学历" width="100" />
-        <el-table-column prop="auditStatus" label="审核" width="100" />
-        <el-table-column prop="publishStatus" label="发布" width="100" />
-        <el-table-column label="操作" width="220" fixed="right">
-          <template #default="{ row }">
-            <el-button v-if="role === 'STUDENT'" link type="primary" @click="apply(row)">投递</el-button>
-            <el-button v-if="role === 'ADMIN' && row.auditStatus === 'PENDING'" link type="success" @click="audit(row, 'APPROVED')">通过</el-button>
-            <el-button v-if="role === 'ADMIN' && row.auditStatus === 'PENDING'" link type="danger" @click="audit(row, 'REJECTED')">驳回</el-button>
-            <el-button v-if="role === 'COMPANY' && row.publishStatus === 'ONLINE'" link type="warning" @click="offline(row)">下架</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-pagination style="margin-top:16px;" layout="prev, pager, next,total" :total="total" :page-size="page.size" v-model:current-page="page.current" @current-change="load" />
-    </el-card>
+      </el-table-column>
+      <el-table-column label="城市" width="110">
+        <template #default="{ row }">
+          <el-tag effect="plain">{{ row.city || '不限' }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="薪资" width="150">
+        <template #default="{ row }">
+          <el-tag type="success" effect="dark">{{ row.salaryMin }} - {{ row.salaryMax }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="学历" width="110">
+        <template #default="{ row }">
+          <el-tag type="info" effect="plain">{{ row.education || '不限' }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="审核" width="115">
+        <template #default="{ row }">
+          <el-tag :type="auditTag(row.auditStatus)" effect="plain">{{ statusText(row.auditStatus) }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="发布" width="115">
+        <template #default="{ row }">
+          <el-tag :type="row.publishStatus === 'ONLINE' ? 'success' : 'info'" effect="plain">
+            {{ row.publishStatus === 'ONLINE' ? '发布中' : '已下架' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="230" fixed="right">
+        <template #default="{ row }">
+          <el-button v-if="role === 'STUDENT'" size="small" type="primary" plain @click="apply(row)">投递</el-button>
+          <el-button v-if="role === 'ADMIN' && row.auditStatus === 'PENDING'" size="small" type="success" plain @click="audit(row, 'APPROVED')">通过</el-button>
+          <el-button v-if="role === 'ADMIN' && row.auditStatus === 'PENDING'" size="small" type="danger" plain @click="audit(row, 'REJECTED')">驳回</el-button>
+          <el-button v-if="role === 'COMPANY' && row.publishStatus === 'ONLINE'" size="small" type="warning" plain @click="offline(row)">下架</el-button>
+        </template>
+      </el-table-column>
+
+      <template #pagination>
+        <el-pagination layout="prev, pager, next,total" :total="total" :page-size="page.size" v-model:current-page="page.current" @current-change="load" />
+      </template>
+    </AppDataTable>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Plus, Search } from '@element-plus/icons-vue'
-import PageHeader from '../../components/PageHeader.vue'
+import { Icon } from '@iconify/vue'
+import AppDataTable from '../../components/common/AppDataTable.vue'
+import AppPageHeader from '../../components/common/AppPageHeader.vue'
+import AppToolbar from '../../components/common/AppToolbar.vue'
 import request from '../../utils/request'
 import { useAuthStore } from '../../stores/auth'
 
@@ -61,14 +110,21 @@ const total = ref(0)
 const page = reactive({ current: 1, size: 10 })
 const filters = reactive({ keyword: '', city: '', education: '', auditStatus: '' })
 const roleTip = computed(() => {
-  if (role === 'ADMIN') {
-    return { type: 'warning', title: '管理员审核视角', desc: '重点关注待审核岗位，确保岗位信息真实、薪资合理、描述完整。' }
-  }
-  if (role === 'COMPANY') {
-    return { type: 'success', title: '企业岗位运营视角', desc: '管理岗位上下架与审核状态，及时优化岗位描述以吸引合适学生。' }
-  }
-  return { type: 'info', title: '学生岗位推荐视角', desc: '结合城市、学历和岗位名称筛选机会，投递前建议先完善简历并使用 AI 匹配分析。' }
+  if (role === 'ADMIN') return '管理员审核视角'
+  if (role === 'COMPANY') return '企业岗位运营视角'
+  return '学生岗位推荐视角'
 })
+
+function auditTag(status) {
+  if (status === 'APPROVED') return 'success'
+  if (status === 'REJECTED') return 'danger'
+  return 'warning'
+}
+
+function statusText(status) {
+  const map = { APPROVED: '已通过', REJECTED: '已驳回', PENDING: '待审核' }
+  return map[status] || '待审核'
+}
 
 async function load() {
   loading.value = true

@@ -1,30 +1,33 @@
 <template>
-  <div class="page">
-    <section class="hero-panel">
-      <span class="ai-chip"><el-icon><OfficeBuilding /></el-icon> 企业招聘工作台</span>
-      <h1 style="margin-top:14px;">从岗位发布到面试邀约，集中管理校园招聘流程</h1>
-      <p>企业端聚焦岗位运营、简历筛选和候选人推进，结合 DeepSeek-V4-Pro 生成岗位描述，提高岗位内容质量与学生匹配效率。</p>
-      <div class="hero-actions">
-        <el-button type="primary" :icon="Promotion" @click="$router.push('/job-publish')">发布岗位</el-button>
-        <el-button :icon="Postcard" plain @click="$router.push('/applications')">处理投递</el-button>
-        <el-button :icon="MagicStick" plain @click="$router.push('/job-publish')">AI 生成岗位描述</el-button>
-      </div>
-    </section>
+  <div class="page" v-auto-animate>
+    <AppPageHeader
+      title="企业招聘工作台"
+      desc="从岗位发布到面试邀约，集中管理企业校园招聘流程，并结合 DeepSeek-V4-Pro 提升岗位描述质量和候选人筛选效率。"
+      eyebrow="企业招聘运营"
+      icon="solar:buildings-2-bold-duotone"
+    >
+      <template #actions>
+        <el-button type="primary" @click="$router.push('/job-publish')">发布岗位</el-button>
+        <el-button plain @click="$router.push('/applications')">处理投递</el-button>
+        <el-button plain @click="$router.push('/job-publish')">AI 生成岗位描述</el-button>
+      </template>
+    </AppPageHeader>
 
     <section class="grid grid-4" style="margin-top:18px;">
-      <div v-for="item in companyMetrics" :key="item.label" class="stat-card">
-        <div class="label">{{ item.label }}</div>
-        <div class="num">{{ item.value }}</div>
-        <span class="stat-trend">{{ item.trend }}</span>
-      </div>
+      <AppStatCard
+        v-for="(item, index) in metricCards"
+        :key="item.label"
+        :label="item.label"
+        :value="item.value"
+        :trend="item.trend"
+        :desc="item.desc"
+        :icon="item.icon"
+        :tone="item.tone"
+      />
     </section>
 
     <section class="grid grid-3" style="margin-top:18px;">
-      <el-card class="content-card wide-card" shadow="never">
-        <div class="section-title">
-          <h3>岗位数据趋势</h3>
-          <el-tag effect="plain">近 7 日收到简历</el-tag>
-        </div>
+      <AppPanel title="岗位数据趋势" desc="近 7 日收到简历数量变化" class="wide-card" :hover="false">
         <div class="bar-chart">
           <div v-for="item in companyTrend" :key="item.label" class="bar-item">
             <div class="bar-column" :style="{ height: `${item.value * 4}px` }" />
@@ -32,30 +35,24 @@
             <span class="bar-label">{{ item.label }}</span>
           </div>
         </div>
-      </el-card>
+      </AppPanel>
 
-      <el-card class="content-card" shadow="never">
-        <div class="section-title">
-          <h3>AI 岗位描述生成</h3>
-          <span class="ai-chip">DeepSeek</span>
-        </div>
-        <p style="line-height:1.8;">输入岗位名称、薪资与技能要求，自动生成岗位职责和任职要求，减少企业 HR 编写岗位文案的时间。</p>
-        <div class="tag-row">
-          <el-tag effect="plain">岗位职责</el-tag>
-          <el-tag effect="plain">任职要求</el-tag>
-          <el-tag effect="plain">校园招聘语气</el-tag>
-        </div>
+      <AppAiCard
+        title="AI 岗位描述生成"
+        desc="输入岗位名称、薪资与技能要求，自动生成岗位职责和任职要求，减少企业 HR 编写岗位文案的时间。"
+        icon="solar:pen-new-square-bold-duotone"
+      >
+        <AppTagGroup style="margin-top:14px;" :tags="['岗位职责', '任职要求', '校园招聘语气']" />
         <el-button type="primary" style="margin-top:18px;" @click="$router.push('/job-publish')">进入生成</el-button>
-      </el-card>
+      </AppAiCard>
     </section>
 
     <section class="grid grid-2" style="margin-top:18px;">
-      <el-card class="content-card" shadow="never">
-        <div class="section-title">
-          <h3>候选人列表</h3>
+      <AppPanel title="候选人列表" desc="根据简历内容和岗位要求展示候选人优先级" :hover="false">
+        <template #actions>
           <el-button link type="primary" @click="$router.push('/applications')">查看全部</el-button>
-        </div>
-        <div class="candidate-list">
+        </template>
+        <div class="candidate-list" v-auto-animate>
           <div v-for="item in candidates" :key="item.name" class="candidate-item">
             <div class="candidate-head">
               <div style="display:flex;gap:12px;align-items:center;">
@@ -76,38 +73,47 @@
             </div>
           </div>
         </div>
-      </el-card>
+      </AppPanel>
 
-      <el-card class="content-card" shadow="never">
-        <div class="section-title">
-          <h3>招聘流程看板</h3>
+      <AppPanel title="招聘流程看板" desc="展示从简历初筛到学生确认的推进情况" :hover="false">
+        <div v-for="item in processRows" :key="item.label" class="bar-row">
+          <span>{{ item.label }}</span>
+          <div class="bar-track"><div class="bar-fill" :style="{ width: item.percent + '%' }" /></div>
+          <strong>{{ item.percent }}%</strong>
         </div>
-        <div class="bar-row">
-          <span>简历初筛</span>
-          <div class="bar-track"><div class="bar-fill" style="width:76%;" /></div>
-          <strong>76%</strong>
-        </div>
-        <div class="bar-row">
-          <span>面试邀约</span>
-          <div class="bar-track"><div class="bar-fill" style="width:58%;" /></div>
-          <strong>58%</strong>
-        </div>
-        <div class="bar-row">
-          <span>学生确认</span>
-          <div class="bar-track"><div class="bar-fill" style="width:44%;" /></div>
-          <strong>44%</strong>
-        </div>
-        <div class="bar-row">
-          <span>岗位补充</span>
-          <div class="bar-track"><div class="bar-fill" style="width:32%;" /></div>
-          <strong>32%</strong>
-        </div>
-      </el-card>
+      </AppPanel>
     </section>
   </div>
 </template>
 
 <script setup>
-import { MagicStick, OfficeBuilding, Postcard, Promotion } from '@element-plus/icons-vue'
-import { candidates, companyMetrics, companyTrend } from '../../data/mockDashboard'
+import { computed } from 'vue'
+import AppAiCard from '../../components/common/AppAiCard.vue'
+import AppPageHeader from '../../components/common/AppPageHeader.vue'
+import AppPanel from '../../components/common/AppPanel.vue'
+import AppStatCard from '../../components/common/AppStatCard.vue'
+import AppTagGroup from '../../components/common/AppTagGroup.vue'
+import { candidates, companyMetrics, companyTrend } from '../../mock/dashboard'
+
+const tones = ['blue', 'purple', 'orange', 'green']
+const icons = [
+  'solar:case-round-bold-duotone',
+  'solar:document-text-bold-duotone',
+  'solar:inbox-line-bold-duotone',
+  'solar:calendar-mark-bold-duotone'
+]
+
+const metricCards = computed(() => companyMetrics.map((item, index) => ({
+  ...item,
+  tone: tones[index],
+  icon: icons[index],
+  desc: index === 0 ? '覆盖技术、产品与运营岗位' : index === 1 ? '本周简历活跃增长' : index === 2 ? '需要 HR 及时推进' : '线上与现场面试并行'
+})))
+
+const processRows = [
+  { label: '简历初筛', percent: 76 },
+  { label: '面试邀约', percent: 58 },
+  { label: '学生确认', percent: 44 },
+  { label: '岗位补充', percent: 32 }
+]
 </script>

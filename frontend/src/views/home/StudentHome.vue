@@ -1,42 +1,46 @@
 <template>
-  <div class="page">
-    <section class="hero-panel">
-      <span class="ai-chip"><el-icon><MagicStick /></el-icon> AI 求职推荐工作台</span>
-      <h1 style="margin-top:14px;">欢迎回来，继续推进你的校园求职计划</h1>
-      <p>系统根据简历完整度、技能标签、城市意向和岗位要求生成推荐结果，帮助你更快完成岗位筛选、简历优化与面试准备。</p>
-      <div class="hero-actions">
-        <el-button type="primary" :icon="Briefcase" @click="$router.push('/jobs')">查看推荐岗位</el-button>
-        <el-button :icon="MagicStick" plain @click="$router.push('/ai-resume')">优化我的简历</el-button>
-        <el-button :icon="Reading" plain @click="$router.push('/ai-match')">岗位匹配分析</el-button>
-      </div>
+  <div class="page" v-auto-animate>
+    <AppPageHeader
+      title="学生求职工作台"
+      desc="系统根据简历完整度、技能标签、城市意向和岗位要求生成推荐结果，帮助学生完成岗位筛选、简历优化与面试准备。"
+      eyebrow="AI 求职推荐工作台"
+      icon="solar:graduation-cap-bold-duotone"
+    >
+      <template #actions>
+        <el-button type="primary" @click="$router.push('/jobs')">查看推荐岗位</el-button>
+        <el-button plain @click="$router.push('/ai-resume')">优化我的简历</el-button>
+        <el-button plain @click="$router.push('/ai-match')">岗位匹配分析</el-button>
+      </template>
+    </AppPageHeader>
+
+    <section class="grid grid-3" style="margin-top:18px;">
+      <AppStatCard
+        v-for="(item, index) in summaryCards"
+        :key="item.label"
+        :label="item.label"
+        :value="item.value"
+        :desc="item.desc"
+        :trend="item.trend"
+        :icon="item.icon"
+        :tone="index === 0 ? 'blue' : index === 1 ? 'purple' : 'orange'"
+      />
     </section>
 
     <section class="grid grid-3" style="margin-top:18px;">
-      <div v-for="item in studentSummary" :key="item.label" class="stat-card">
-        <div class="label">{{ item.label }}</div>
-        <div class="num">{{ item.value }}</div>
-        <p style="margin:0;line-height:1.6;">{{ item.desc }}</p>
-      </div>
-    </section>
-
-    <section class="grid grid-3" style="margin-top:18px;">
-      <el-card class="content-card wide-card" shadow="never">
-        <div class="section-title">
-          <h3>AI 推荐岗位</h3>
+      <AppPanel title="AI 推荐岗位" desc="按简历技能、城市意向和岗位要求综合排序" class="wide-card" :hover="false">
+        <template #actions>
           <el-tag type="primary" effect="plain">按匹配度排序</el-tag>
-        </div>
-        <div class="job-card-list">
+        </template>
+        <div class="job-card-list" v-auto-animate>
           <div v-for="job in recommendedJobs" :key="job.title" class="job-card">
             <div class="job-card-head">
               <div>
                 <h3>{{ job.title }}</h3>
                 <div class="muted">{{ job.company }} · {{ job.city }}</div>
               </div>
-              <strong style="color:var(--blue);">{{ job.salary }}</strong>
+              <strong style="color:var(--color-primary);">{{ job.salary }}</strong>
             </div>
-            <div class="tag-row">
-              <el-tag v-for="tag in job.tags" :key="tag" effect="plain">{{ tag }}</el-tag>
-            </div>
+            <AppTagGroup style="margin-top:12px;" :tags="job.tags" />
             <div class="progress-line">
               <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
                 <span class="muted">AI 匹配度</span>
@@ -46,36 +50,28 @@
             </div>
           </div>
         </div>
-      </el-card>
+      </AppPanel>
 
-      <el-card class="content-card" shadow="never">
-        <div class="section-title">
-          <h3>简历优化入口</h3>
-        </div>
-        <div class="icon-pill"><el-icon><MagicStick /></el-icon></div>
-        <h2 style="color:var(--title);margin:16px 0 8px;">DeepSeek 简历优化</h2>
-        <p style="line-height:1.8;">识别简历中的项目表达、技能关键词和岗位匹配不足，生成适合校园招聘场景的优化文本。</p>
+      <AppAiCard
+        title="DeepSeek 简历优化"
+        desc="识别简历中的项目表达、技能关键词和岗位匹配不足，生成适合校园招聘场景的优化文本。"
+        icon="solar:document-text-bold-duotone"
+      >
         <el-button type="primary" style="margin-top:16px;" @click="$router.push('/ai-resume')">立即优化</el-button>
-      </el-card>
+      </AppAiCard>
     </section>
 
     <section class="grid grid-3" style="margin-top:18px;">
-      <el-card class="content-card" shadow="never">
-        <div class="section-title">
-          <h3>投递进度时间线</h3>
-        </div>
+      <AppPanel title="投递进度时间线" desc="跟踪求职流程中的关键状态" :hover="false">
         <el-timeline>
           <el-timeline-item v-for="item in applyTimeline" :key="item.title" :type="item.status" :timestamp="item.time">
             {{ item.title }}
           </el-timeline-item>
         </el-timeline>
-      </el-card>
+      </AppPanel>
 
-      <el-card class="content-card" shadow="never">
-        <div class="section-title">
-          <h3>热门企业</h3>
-        </div>
-        <div class="candidate-list">
+      <AppPanel title="热门企业" desc="根据岗位热度和企业活跃度推荐" :hover="false">
+        <div class="candidate-list" v-auto-animate>
           <div v-for="item in hotCompanies" :key="item.name" class="candidate-item">
             <div class="candidate-head">
               <div>
@@ -86,22 +82,38 @@
             </div>
           </div>
         </div>
-      </el-card>
+      </AppPanel>
 
-      <el-card class="content-card" shadow="never">
-        <div class="section-title">
-          <h3>AI 面试准备</h3>
-        </div>
-        <p style="line-height:1.8;">根据岗位名称和任职要求生成基础题、项目题与综合题，帮助你提前组织回答思路。</p>
-        <el-button :icon="Cpu" type="primary" style="margin-top:16px;" @click="$router.push('/ai-interview')">
+      <AppAiCard
+        title="AI 面试准备"
+        desc="根据岗位名称和任职要求生成基础题、项目题与综合题，帮助学生提前组织回答思路。"
+        icon="solar:microphone-3-bold-duotone"
+      >
+        <el-button type="primary" style="margin-top:16px;" @click="$router.push('/ai-interview')">
           生成模拟面试题
         </el-button>
-      </el-card>
+      </AppAiCard>
     </section>
   </div>
 </template>
 
 <script setup>
-import { Briefcase, Cpu, MagicStick, Reading } from '@element-plus/icons-vue'
-import { applyTimeline, hotCompanies, recommendedJobs, studentSummary } from '../../data/mockDashboard'
+import { computed } from 'vue'
+import AppAiCard from '../../components/common/AppAiCard.vue'
+import AppPageHeader from '../../components/common/AppPageHeader.vue'
+import AppPanel from '../../components/common/AppPanel.vue'
+import AppStatCard from '../../components/common/AppStatCard.vue'
+import AppTagGroup from '../../components/common/AppTagGroup.vue'
+import { applyTimeline, hotCompanies, studentSummary } from '../../mock/dashboard'
+import { recommendedJobs } from '../../mock/jobs'
+
+const summaryCards = computed(() => studentSummary.map((item, index) => ({
+  ...item,
+  trend: index === 0 ? '可优化' : index === 1 ? '智能推荐' : '待确认',
+  icon: index === 0
+    ? 'solar:document-text-bold-duotone'
+    : index === 1
+      ? 'solar:stars-bold-duotone'
+      : 'solar:calendar-mark-bold-duotone'
+})))
 </script>

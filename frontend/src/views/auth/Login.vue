@@ -2,7 +2,7 @@
   <div class="auth-shell">
     <section class="auth-left">
       <div class="brand-row">
-        <span class="brand-mark"><el-icon><Cpu /></el-icon></span>
+        <span class="brand-mark"><Icon icon="solar:cpu-bolt-bold-duotone" /></span>
         <div>
           <div>AI 校园招聘系统</div>
           <small style="color: var(--muted); font-weight: 700;">Campus Recruitment AI SaaS</small>
@@ -10,7 +10,7 @@
       </div>
 
       <div class="auth-title">
-        <span class="ai-chip"><el-icon><MagicStick /></el-icon> DeepSeek-V4-Pro 智能就业助手</span>
+        <span class="ai-chip"><Icon icon="solar:stars-bold-duotone" /> DeepSeek-V4-Pro 智能就业助手</span>
         <h1>让校园招聘从流程管理升级为智能决策</h1>
         <p>
           面向学生、企业、就业老师与管理员的现代化招聘平台，覆盖简历优化、岗位匹配、投递追踪和面试邀请全流程。
@@ -43,7 +43,7 @@
 
       <div class="auth-highlights">
         <div v-for="item in highlights" :key="item.title" class="auth-highlight">
-          <el-icon class="icon-pill soft"><component :is="item.icon" /></el-icon>
+            <span class="icon-pill soft"><Icon :icon="item.icon" /></span>
           <strong>{{ item.title }}</strong>
           <span>{{ item.desc }}</span>
         </div>
@@ -53,7 +53,7 @@
     <section class="auth-panel">
       <el-form ref="formRef" :model="form" :rules="rules" class="auth-card" @keyup.enter="submit">
         <div class="brand-row">
-          <span class="brand-mark"><el-icon><Briefcase /></el-icon></span>
+          <span class="brand-mark"><Icon icon="solar:case-round-bold-duotone" /></span>
           <div>
             <div>欢迎登录</div>
             <small style="color:var(--muted);font-weight:700;">毕业设计演示平台</small>
@@ -75,10 +75,14 @@
         </div>
 
         <el-form-item prop="username">
-          <el-input v-model="form.username" size="large" placeholder="用户名" :prefix-icon="User" />
+          <el-input v-model="form.username" size="large" placeholder="用户名">
+            <template #prefix><Icon icon="solar:user-rounded-bold-duotone" /></template>
+          </el-input>
         </el-form-item>
         <el-form-item prop="password">
-          <el-input v-model="form.password" size="large" placeholder="密码" show-password :prefix-icon="Lock" />
+          <el-input v-model="form.password" size="large" placeholder="密码" show-password>
+            <template #prefix><Icon icon="solar:lock-password-bold-duotone" /></template>
+          </el-input>
         </el-form-item>
 
         <el-button type="primary" size="large" style="width:100%;height:46px;" :loading="loading" @click="submit">
@@ -94,10 +98,10 @@
 </template>
 
 <script setup>
-import { markRaw, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Briefcase, Cpu, DataAnalysis, Lock, MagicStick, Promotion, User } from '@element-plus/icons-vue'
+import { Icon } from '@iconify/vue'
 import { useAuthStore } from '../../stores/auth'
 
 const router = useRouter()
@@ -112,10 +116,10 @@ const quickUsers = [
   { label: '就业老师', username: 'teacher' }
 ]
 const highlights = [
-  { title: 'AI 简历优化', desc: '优化项目表达与关键词匹配', icon: markRaw(MagicStick) },
-  { title: '智能岗位匹配', desc: '分析简历与岗位要求契合度', icon: markRaw(DataAnalysis) },
-  { title: '投递进度追踪', desc: '记录待查看、面试、拒绝等状态', icon: markRaw(Promotion) },
-  { title: '面试邀请管理', desc: '支持企业邀约与学生确认', icon: markRaw(Briefcase) }
+  { title: 'AI 简历优化', desc: '优化项目表达与关键词匹配', icon: 'solar:document-text-bold-duotone' },
+  { title: '智能岗位匹配', desc: '分析简历与岗位要求契合度', icon: 'solar:chart-2-bold-duotone' },
+  { title: '投递进度追踪', desc: '记录待查看、面试、拒绝等状态', icon: 'solar:route-bold-duotone' },
+  { title: '面试邀请管理', desc: '支持企业邀约与学生确认', icon: 'solar:calendar-mark-bold-duotone' }
 ]
 const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],

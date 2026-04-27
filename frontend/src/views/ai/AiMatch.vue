@@ -1,31 +1,21 @@
 <template>
-  <div class="page">
-    <section class="hero-panel" style="margin-bottom:18px;">
-      <span class="ai-chip"><el-icon><DataAnalysis /></el-icon> DeepSeek-V4-Pro 岗位匹配</span>
-      <h1 style="margin-top:14px;">AI 岗位匹配页面</h1>
-      <p>输入学生简历与岗位要求，系统返回匹配分数、匹配原因与不足建议，帮助学生判断投递优先级。</p>
-    </section>
+  <div class="page" v-auto-animate>
+    <AppPageHeader
+      title="AI 岗位匹配页面"
+      desc="输入学生简历与岗位要求，系统返回匹配分数、匹配原因、不足建议和技能标签匹配情况。"
+      eyebrow="DeepSeek-V4-Pro 岗位匹配"
+      icon="solar:chart-2-bold-duotone"
+    />
 
-    <section class="grid grid-3">
-      <el-card class="content-card" shadow="never">
-        <div class="section-title">
-          <h3>岗位信息</h3>
-          <el-tag effect="plain">推荐岗位</el-tag>
-        </div>
+    <section class="grid grid-3" style="margin-top:18px;">
+      <AppPanel title="岗位信息" desc="推荐岗位示例" :hover="false">
         <h2 style="color:var(--title);margin:0 0 8px;">Java 后端开发工程师</h2>
         <p class="muted">杭州云启科技有限公司 · 杭州 · 10k-16k</p>
-        <div class="tag-row">
-          <el-tag effect="plain">Spring Boot</el-tag>
-          <el-tag effect="plain">MySQL</el-tag>
-          <el-tag effect="plain">Redis</el-tag>
-        </div>
+        <AppTagGroup :tags="['Spring Boot', 'MySQL', 'Redis']" />
         <p style="line-height:1.8;margin-top:16px;">要求熟悉 Java、Spring Boot、MySQL，有项目开发经验和良好的沟通能力。</p>
-      </el-card>
+      </AppPanel>
 
-      <el-card class="content-card wide-card" shadow="never">
-        <div class="section-title">
-          <h3>匹配度分析输入</h3>
-        </div>
+      <AppPanel title="匹配度分析输入" class="wide-card" :hover="false">
         <el-form label-position="top">
           <el-form-item label="学生简历">
             <el-input v-model="form.resumeContent" type="textarea" :rows="6" />
@@ -33,18 +23,17 @@
           <el-form-item label="岗位要求">
             <el-input v-model="form.jobRequirement" type="textarea" :rows="6" />
           </el-form-item>
-          <el-button type="primary" :icon="DataAnalysis" :loading="loading" @click="submit">分析匹配度</el-button>
+          <el-button type="primary" :loading="loading" @click="submit">分析匹配度</el-button>
         </el-form>
-      </el-card>
+      </AppPanel>
     </section>
 
     <section class="grid grid-2" style="margin-top:18px;">
-      <el-card class="content-card" shadow="never">
-        <div class="section-title">
-          <h3>匹配结果</h3>
+      <AppPanel title="匹配结果" :hover="false">
+        <template #actions>
           <el-tag v-if="result.mock" type="warning" effect="plain">模拟数据</el-tag>
           <el-tag v-else effect="plain">DeepSeek-V4-Pro</el-tag>
-        </div>
+        </template>
         <div class="match-score">
           <div class="score-ring" :style="{ '--score': `${result.matchScore || 0}%` }">
             <span>{{ result.matchScore || 0 }}%</span>
@@ -54,26 +43,33 @@
             <p style="line-height:1.85;margin:0;">{{ result.matchReason || '分析结果会展示在这里。' }}</p>
           </div>
         </div>
-      </el-card>
+      </AppPanel>
 
-      <el-card class="content-card" shadow="never">
-        <div class="section-title">
-          <h3>不足建议</h3>
+      <AppPanel title="技能标签匹配" desc="展示简历能力与岗位关键词之间的覆盖情况" :hover="false">
+        <div class="tag-row">
+          <el-tag v-for="item in skillMatchTags" :key="item.label" :type="item.matched ? 'success' : 'info'" effect="plain">
+            {{ item.label }}{{ item.matched ? ' 已覆盖' : ' 待补充' }}
+          </el-tag>
         </div>
+        <el-divider />
+        <h3 style="color:var(--title);">不足建议</h3>
         <el-timeline>
           <el-timeline-item v-for="item in normalizedSuggestions" :key="item" type="primary">
             {{ item }}
           </el-timeline-item>
         </el-timeline>
-      </el-card>
+      </AppPanel>
     </section>
   </div>
 </template>
 
 <script setup>
 import { computed, reactive, ref } from 'vue'
-import { DataAnalysis } from '@element-plus/icons-vue'
+import AppPageHeader from '../../components/common/AppPageHeader.vue'
+import AppPanel from '../../components/common/AppPanel.vue'
+import AppTagGroup from '../../components/common/AppTagGroup.vue'
 import request from '../../utils/request'
+import { skillMatchTags } from '../../mock/ai'
 
 const loading = ref(false)
 const form = reactive({

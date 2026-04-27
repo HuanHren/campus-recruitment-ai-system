@@ -1,16 +1,18 @@
 <template>
-  <div class="page">
-    <section class="hero-panel" style="margin-bottom:18px;">
-      <span class="ai-chip"><el-icon><Cpu /></el-icon> DeepSeek-V4-Pro 模拟面试</span>
-      <h1 style="margin-top:14px;">AI 模拟面试题生成</h1>
-      <p>根据岗位名称和岗位要求生成 5 道面试题，并按基础题、项目题、综合题展示，方便学生答辩式演练。</p>
-    </section>
+  <div class="page" v-auto-animate>
+    <AppPageHeader
+      title="AI 模拟面试题生成"
+      desc="根据岗位名称和岗位要求生成 5 道面试题，并按基础题、项目题、综合题展示，方便学生进行答辩式演练。"
+      eyebrow="DeepSeek-V4-Pro 模拟面试"
+      icon="solar:microphone-3-bold-duotone"
+    >
+      <template #actions>
+        <el-button type="primary" :loading="loading" @click="submit">重新生成</el-button>
+      </template>
+    </AppPageHeader>
 
-    <section class="grid grid-3">
-      <el-card class="content-card" shadow="never">
-        <div class="section-title">
-          <h3>生成条件</h3>
-        </div>
+    <section class="grid grid-3" style="margin-top:18px;">
+      <AppPanel title="生成条件" :hover="false">
         <el-form label-position="top">
           <el-form-item label="岗位名称">
             <el-input v-model="form.jobName" placeholder="例如：Java 后端开发工程师" />
@@ -18,17 +20,16 @@
           <el-form-item label="岗位要求">
             <el-input v-model="form.jobRequirement" type="textarea" :rows="9" />
           </el-form-item>
-          <el-button type="primary" :icon="Cpu" :loading="loading" @click="submit">生成面试题</el-button>
+          <el-button type="primary" :loading="loading" @click="submit">生成面试题</el-button>
         </el-form>
-      </el-card>
+      </AppPanel>
 
-      <el-card class="content-card wide-card" shadow="never">
-        <div class="section-title">
-          <h3>面试题卡片</h3>
+      <AppPanel title="面试题卡片" class="wide-card" :hover="false">
+        <template #actions>
           <el-tag v-if="mock" type="warning" effect="plain">模拟数据</el-tag>
           <el-tag v-else effect="plain">DeepSeek-V4-Pro</el-tag>
-        </div>
-        <div class="grid grid-2">
+        </template>
+        <div class="grid grid-2" v-auto-animate>
           <div v-for="(question, index) in visibleQuestions" :key="question" class="question-card">
             <el-tag :style="{ borderColor: questionType(index).color, color: questionType(index).color }" effect="plain">
               {{ questionType(index).type }}
@@ -37,16 +38,17 @@
             <p style="line-height:1.8;margin:0;">{{ question }}</p>
           </div>
         </div>
-      </el-card>
+      </AppPanel>
     </section>
   </div>
 </template>
 
 <script setup>
 import { computed, reactive, ref } from 'vue'
-import { Cpu } from '@element-plus/icons-vue'
+import AppPageHeader from '../../components/common/AppPageHeader.vue'
+import AppPanel from '../../components/common/AppPanel.vue'
 import request from '../../utils/request'
-import { interviewQuestionTypes } from '../../data/mockDashboard'
+import { interviewQuestionTypes } from '../../mock/ai'
 
 const loading = ref(false)
 const mock = ref(false)
