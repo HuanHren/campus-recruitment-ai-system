@@ -24,7 +24,7 @@ spring:
         speech: none
         transcription: none
     openai:
-      api-key: sk-37d2dc5431844ee5a8d67d0138ee08ff
+      api-key: 
       base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
       chat:
         options:
