@@ -16,6 +16,7 @@ import Applications from '../views/apply/Applications.vue'
 import Interviews from '../views/interview/Interviews.vue'
 import AiResume from '../views/ai/AiResume.vue'
 import AiMatch from '../views/ai/AiMatch.vue'
+import AiInterview from '../views/ai/AiInterview.vue'
 import Statistics from '../views/statistics/Statistics.vue'
 
 const routes = [
@@ -39,6 +40,7 @@ const routes = [
       { path: 'interviews', component: Interviews, meta: { roles: ['ADMIN', 'STUDENT', 'COMPANY'] } },
       { path: 'ai-resume', component: AiResume, meta: { roles: ['STUDENT'] } },
       { path: 'ai-match', component: AiMatch, meta: { roles: ['STUDENT'] } },
+      { path: 'ai-interview', component: AiInterview, meta: { roles: ['STUDENT'] } },
       { path: 'statistics', component: Statistics, meta: { roles: ['ADMIN', 'STUDENT', 'COMPANY', 'TEACHER'] } }
     ]
   }
