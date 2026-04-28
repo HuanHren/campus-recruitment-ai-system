@@ -84,14 +84,21 @@ import AppPageHeader from '../../components/common/AppPageHeader.vue'
 import AppPanel from '../../components/common/AppPanel.vue'
 import AppTagGroup from '../../components/common/AppTagGroup.vue'
 import aiRequest from '../../utils/aiRequest'
-import { skillMatchTags } from '../../mock/ai'
+import { mockJobMatch, skillMatchTags } from '../../mock/ai'
 
 const loading = ref(false)
 const form = reactive({
   resumeContent: '熟悉 Java、Spring Boot、MySQL，做过校园招聘系统，负责后端接口、权限控制和数据库设计。',
   jobRequirement: '要求熟悉 Java、Spring Boot、MySQL，有项目开发经验和良好的沟通能力。'
 })
-const result = reactive({ matchScore: 0, matchReason: '', suggestions: [], mock: false })
+const result = reactive({
+  ...mockJobMatch,
+  matchReason: mockJobMatch.matchReasons.join('；'),
+  recommendReason: mockJobMatch.recommendReasons.join('；'),
+  mock: true,
+  source: 'mock',
+  model: 'deepseek-v4-pro'
+})
 const visibleSkillTags = computed(() => result.skillTags?.length ? result.skillTags : skillMatchTags)
 const normalizedSuggestions = computed(() => {
   return result.suggestions?.length
@@ -111,6 +118,16 @@ async function submit() {
   try {
     const res = await aiRequest.post('/student/ai/job-match', form)
     Object.assign(result, res.data)
+  } catch {
+    Object.assign(result, {
+      ...mockJobMatch,
+      matchReason: mockJobMatch.matchReasons.join('；'),
+      recommendReason: mockJobMatch.recommendReasons.join('；'),
+      mock: true,
+      source: 'mock',
+      model: 'deepseek-v4-pro',
+      reason: 'demo-fallback'
+    })
   } finally {
     loading.value = false
   }

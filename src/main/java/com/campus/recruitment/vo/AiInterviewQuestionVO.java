@@ -32,5 +32,7 @@ public class AiInterviewQuestionVO {
         private String question;
 
         private String answerIdea;
+
+        private String focus;
     }
 }

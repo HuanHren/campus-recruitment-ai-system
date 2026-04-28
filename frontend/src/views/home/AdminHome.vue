@@ -1,8 +1,8 @@
 <template>
   <div class="page" v-auto-animate>
     <AppPageHeader
-      title="管理员工作台"
-      :desc="`今天是 ${today}，平台运行正常。当前重点关注企业认证、岗位审核、AI 调用与投递趋势。`"
+      title="管理员数据工作台"
+      :desc="`今天是 ${today}。首页数据已与演示学生、企业、岗位、投递和面试邀请数据联动，适合毕业答辩时展示完整校园招聘流程。`"
       eyebrow="AI 校园招聘运营总览"
       icon="solar:chart-square-bold-duotone"
     >
@@ -13,47 +13,63 @@
       </template>
     </AppPageHeader>
 
-    <section class="grid grid-6" style="margin-top:18px;">
+    <section class="grid grid-6 dashboard-stats">
       <AppStatCard v-for="item in adminMetrics" :key="item.label" v-bind="item" />
     </section>
 
-    <section class="grid grid-3" style="margin-top:18px;">
-      <AppPanel title="近 7 日投递趋势" desc="用于观察学生投递活跃度和招聘节奏变化" class="wide-card" :hover="false">
+    <section class="grid grid-3 dashboard-section">
+      <AppPanel title="近 7 日投递趋势" desc="直接从 120 条投递记录中按日期聚合" class="wide-card" :hover="false">
         <VChart class="chart-box" :option="trendOption" autoresize />
       </AppPanel>
 
-      <AppPanel title="岗位分类占比" desc="展示当前招聘岗位结构" :hover="false">
+      <AppPanel title="岗位类型占比" desc="校招、实习、管培生岗位结构" :hover="false">
         <VChart class="chart-box" :option="pieOption" autoresize />
       </AppPanel>
     </section>
 
-    <section class="grid grid-3" style="margin-top:18px;">
-      <AppPanel title="企业审核进度" desc="认证、岗位和资料补充的处理情况" :hover="false">
+    <section class="grid grid-3 dashboard-section">
+      <AppPanel title="企业与岗位审核进度" desc="审核数量随企业和岗位 mock 数据变化" :hover="false">
         <VChart class="chart-box small" :option="auditOption" autoresize />
       </AppPanel>
 
-      <AppPanel title="AI 系统状态" desc="DeepSeek-V4-Pro 调用与兜底演示状态" :hover="false">
+      <AppPanel title="城市岗位分布" desc="覆盖 13 个校园招聘重点城市" :hover="false">
+        <VChart class="chart-box small" :option="cityOption" autoresize />
+      </AppPanel>
+
+      <AppPanel title="投递状态分布" desc="五类投递状态均衡分布，便于演示流程" :hover="false">
+        <div class="status-list" v-auto-animate>
+          <div v-for="item in applyStatusDistribution" :key="item.name" class="status-row">
+            <span>{{ item.name }}</span>
+            <el-progress :percentage="statusPercent(item.value)" :stroke-width="10" :show-text="false" />
+            <strong>{{ item.value }}</strong>
+          </div>
+        </div>
+      </AppPanel>
+    </section>
+
+    <section class="grid grid-3 dashboard-section">
+      <AppPanel title="AI 系统状态" desc="DeepSeek-V4-Pro 与模拟兜底能力" :hover="false">
         <div class="todo-list" v-auto-animate>
           <div v-for="item in aiStatus" :key="item.label" class="todo-item">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div class="row-between">
               <span>{{ item.label }}</span>
-              <strong style="color:var(--title);">{{ item.value }}</strong>
+              <strong>{{ item.value }}</strong>
             </div>
-            <div class="muted" style="margin-top:6px;font-size:13px;">{{ item.detail }}</div>
+            <p>{{ item.detail }}</p>
           </div>
         </div>
       </AppPanel>
 
-      <AppPanel title="待办事项" desc="管理员需要优先处理的业务事项" :hover="false">
-        <div class="todo-list" v-auto-animate>
+      <AppPanel title="待办事项" desc="管理员需要优先处理的业务事项" class="wide-card" :hover="false">
+        <div class="todo-grid" v-auto-animate>
           <div v-for="item in adminTodos" :key="item.title" class="todo-item">
-            <div style="display:flex;justify-content:space-between;gap:10px;">
-              <strong style="color:var(--title);">{{ item.title }}</strong>
+            <div class="row-between">
+              <strong>{{ item.title }}</strong>
               <el-tag :type="item.level === '高' ? 'danger' : item.level === '中' ? 'warning' : 'info'" size="small">
                 {{ item.level }}
               </el-tag>
             </div>
-            <p style="margin:8px 0 0;line-height:1.7;">{{ item.desc }}</p>
+            <p>{{ item.desc }}</p>
           </div>
         </div>
       </AppPanel>
@@ -72,7 +88,17 @@ import dayjs from 'dayjs'
 import AppPageHeader from '../../components/common/AppPageHeader.vue'
 import AppPanel from '../../components/common/AppPanel.vue'
 import AppStatCard from '../../components/common/AppStatCard.vue'
-import { adminMetrics, adminTodos, adminTrend, aiStatus, auditProgress, jobCategory } from '../../mock/dashboard'
+import {
+  adminMetrics,
+  adminTodos,
+  adminTrend,
+  aiStatus,
+  applyStatusDistribution,
+  auditProgress,
+  cityDistribution,
+  dataOverview,
+  jobCategory
+} from '../../mock/dashboard'
 
 use([CanvasRenderer, LineChart, PieChart, BarChart, GridComponent, TooltipComponent, LegendComponent])
 
@@ -81,7 +107,7 @@ const today = dayjs().format('YYYY年MM月DD日')
 const trendOption = computed(() => ({
   color: ['#2563EB'],
   tooltip: { trigger: 'axis' },
-  grid: { left: 28, right: 18, top: 28, bottom: 28 },
+  grid: { left: 32, right: 18, top: 28, bottom: 28 },
   xAxis: { type: 'category', data: adminTrend.map(item => item.label), axisTick: { show: false } },
   yAxis: { type: 'value', splitLine: { lineStyle: { color: '#EEF2F7' } } },
   series: [{
@@ -112,14 +138,32 @@ const pieOption = computed(() => ({
 const auditOption = computed(() => ({
   color: ['#7C3AED'],
   tooltip: { trigger: 'axis' },
-  grid: { left: 34, right: 18, top: 26, bottom: 36 },
-  xAxis: { type: 'category', data: auditProgress.map(item => item.label), axisLabel: { interval: 0, rotate: 16 } },
+  grid: { left: 34, right: 18, top: 26, bottom: 42 },
+  xAxis: { type: 'category', data: auditProgress.map(item => item.label), axisLabel: { interval: 0, rotate: 18 } },
   yAxis: { type: 'value', splitLine: { lineStyle: { color: '#EEF2F7' } } },
   series: [{ type: 'bar', barWidth: 28, itemStyle: { borderRadius: [10, 10, 0, 0] }, data: auditProgress.map(item => item.value) }]
 }))
+
+const cityOption = computed(() => ({
+  color: ['#10B981'],
+  tooltip: { trigger: 'axis' },
+  grid: { left: 34, right: 18, top: 26, bottom: 50 },
+  xAxis: { type: 'category', data: cityDistribution.map(item => item.name), axisLabel: { interval: 0, rotate: 30 } },
+  yAxis: { type: 'value', splitLine: { lineStyle: { color: '#EEF2F7' } } },
+  series: [{ type: 'bar', barWidth: 18, itemStyle: { borderRadius: [8, 8, 0, 0] }, data: cityDistribution.map(item => item.value) }]
+}))
+
+function statusPercent(value) {
+  return Math.round((value / dataOverview.applications) * 100)
+}
 </script>
 
 <style scoped>
+.dashboard-stats,
+.dashboard-section {
+  margin-top: 18px;
+}
+
 .chart-box {
   width: 100%;
   height: 300px;
@@ -127,5 +171,43 @@ const auditOption = computed(() => ({
 
 .chart-box.small {
   height: 260px;
+}
+
+.status-list,
+.todo-list,
+.todo-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.todo-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.status-row {
+  display: grid;
+  grid-template-columns: 82px 1fr 42px;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-text);
+}
+
+.row-between {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--color-title);
+}
+
+.todo-item p {
+  margin: 8px 0 0;
+  color: var(--color-muted);
+  line-height: 1.7;
+}
+
+@media (max-width: 1280px) {
+  .todo-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

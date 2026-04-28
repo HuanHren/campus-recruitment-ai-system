@@ -51,6 +51,9 @@
             <div v-if="question.answerIdea" style="margin-top:12px;padding:12px;border-radius:14px;background:#f8faff;color:var(--color-text);line-height:1.7;">
               <strong>参考答题思路：</strong>{{ question.answerIdea }}
             </div>
+            <div v-if="question.focus" style="margin-top:10px;color:var(--muted);font-size:13px;">
+              考察点：{{ question.focus }}
+            </div>
           </div>
         </div>
       </AppPanel>
@@ -63,7 +66,7 @@ import { computed, reactive, ref } from 'vue'
 import AppPageHeader from '../../components/common/AppPageHeader.vue'
 import AppPanel from '../../components/common/AppPanel.vue'
 import aiRequest from '../../utils/aiRequest'
-import { interviewQuestionTypes } from '../../mock/ai'
+import { interviewQuestionTypes, mockInterviewQuestions } from '../../mock/ai'
 
 const loading = ref(false)
 const source = ref('mock')
@@ -73,11 +76,7 @@ const form = reactive({
   jobRequirement: '熟悉 Java、Spring Boot、MySQL，具备良好的编码习惯和项目沟通能力。'
 })
 const questions = ref([])
-const fallbackQuestions = [
-  { type: '基础题', question: '请介绍 Java 集合框架中 List、Set、Map 的区别，并说明常见使用场景。', answerIdea: '从是否有序、是否重复、键值结构和典型实现类回答。' },
-  { type: '项目题', question: '请结合你的项目经历，说明你负责的模块、接口设计和数据库设计思路。', answerIdea: '按照背景、职责、方案、结果的结构回答。' },
-  { type: '综合题', question: '如果接口响应变慢，你会从哪些方面排查问题？', answerIdea: '从日志、SQL、索引、网络、缓存和服务资源角度分析。' }
-]
+const fallbackQuestions = mockInterviewQuestions
 
 const visibleQuestions = computed(() => questions.value.length ? questions.value : fallbackQuestions)
 
@@ -98,6 +97,10 @@ async function submit() {
     questions.value = res.data.questionCards || (res.data.questions || []).map(item => ({ question: item }))
     source.value = res.data.source || (res.data.mock ? 'mock' : 'deepseek')
     model.value = res.data.model || 'deepseek-v4-pro'
+  } catch {
+    questions.value = mockInterviewQuestions
+    source.value = 'mock'
+    model.value = 'deepseek-v4-pro'
   } finally {
     loading.value = false
   }

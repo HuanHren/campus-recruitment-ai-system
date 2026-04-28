@@ -1,87 +1,217 @@
+import { demoApplications } from './applications'
+import { demoCompanies } from './companies'
+import { demoInterviews } from './interviews'
+import { demoJobs } from './jobs'
+import { demoStudents } from './students'
+
+type CountMap = Record<string, number>
+
+const TODAY = '2026-04-28'
+const LAST_7_DAYS = ['2026-04-22', '2026-04-23', '2026-04-24', '2026-04-25', '2026-04-26', '2026-04-27', '2026-04-28']
+
+function countBy<T extends Record<string, any>>(rows: T[], key: keyof T): CountMap {
+  return rows.reduce((map, row) => {
+    const value = String(row[key] || '未分类')
+    map[value] = (map[value] || 0) + 1
+    return map
+  }, {} as CountMap)
+}
+
+function toChartData(map: CountMap) {
+  return Object.entries(map).map(([name, value]) => ({ name, value }))
+}
+
+function percent(value: number, total: number) {
+  if (!total) return 0
+  return Math.round((value / total) * 100)
+}
+
+const applyStatusMap = countBy(demoApplications, 'applyStatusText')
+const jobTypeMap = countBy(demoJobs, 'jobType')
+const jobLevelMap = countBy(demoJobs, 'jobLevel')
+const cityMap = countBy(demoJobs, 'city')
+const todayApplications = demoApplications.filter(item => item.createdAt?.startsWith(TODAY))
+const pendingCompanies = demoCompanies.filter(item => item.auditStatus === 'PENDING')
+const pendingJobs = demoJobs.filter(item => item.auditStatus === 'PENDING')
+const approvedCompanies = demoCompanies.filter(item => item.auditStatus === 'APPROVED')
+const onlineJobs = demoJobs.filter(item => item.publishStatus === 'ONLINE')
+
+export const dataOverview = {
+  companies: demoCompanies.length,
+  students: demoStudents.length,
+  jobs: demoJobs.length,
+  resumes: demoStudents.length,
+  applications: demoApplications.length,
+  interviews: demoInterviews.length,
+  todayApplications: todayApplications.length,
+  pendingCompanies: pendingCompanies.length,
+  pendingJobs: pendingJobs.length,
+  approvedCompanies: approvedCompanies.length,
+  onlineJobs: onlineJobs.length,
+  studentInterns: demoStudents.filter(item => item.grade.includes('实习')).length,
+  studentGraduates: demoStudents.filter(item => item.grade.includes('应届')).length
+}
+
 export const adminMetrics = [
-  { label: '注册学生数', value: 1286, trend: '+12.4%', tone: 'blue', icon: 'solar:user-id-bold-duotone', desc: '覆盖 2026 届重点专业' },
-  { label: '入驻企业数', value: 236, trend: '+8.1%', tone: 'purple', icon: 'solar:buildings-2-bold-duotone', desc: '含校招认证企业' },
-  { label: '发布岗位数', value: 518, trend: '+15.7%', tone: 'cyan', icon: 'solar:case-round-bold-duotone', desc: '技术与产品岗位占比高' },
-  { label: '今日投递数', value: 94, trend: '+21', tone: 'green', icon: 'solar:paper-plane-bold-duotone', desc: '投递活跃度提升' },
-  { label: '待审核企业', value: 18, trend: '需处理', tone: 'orange', icon: 'solar:shield-check-bold-duotone', desc: '等待认证资料核验' },
-  { label: '待审核岗位', value: 27, trend: '需处理', tone: 'orange', icon: 'solar:document-add-bold-duotone', desc: '需要管理员确认' }
+  {
+    label: '注册学生数',
+    value: dataOverview.students,
+    trend: `${dataOverview.studentGraduates} 名应届`,
+    tone: 'blue',
+    icon: 'solar:user-id-bold-duotone',
+    desc: `${dataOverview.studentInterns} 名实习生，学生画像更贴近校园招聘`
+  },
+  {
+    label: '入驻企业数',
+    value: dataOverview.companies,
+    trend: `${dataOverview.approvedCompanies} 家通过`,
+    tone: 'purple',
+    icon: 'solar:buildings-2-bold-duotone',
+    desc: '文字 Logo 演示数据，避免使用企业官方素材'
+  },
+  {
+    label: '发布岗位数',
+    value: dataOverview.jobs,
+    trend: `${dataOverview.onlineJobs} 个在线`,
+    tone: 'cyan',
+    icon: 'solar:case-round-bold-duotone',
+    desc: `实习、校招、管培生岗位共 ${dataOverview.jobs} 条`
+  },
+  {
+    label: '今日投递数',
+    value: dataOverview.todayApplications,
+    trend: '实时联动',
+    tone: 'green',
+    icon: 'solar:paper-plane-bold-duotone',
+    desc: `投递记录总量 ${dataOverview.applications} 条，状态分布均衡`
+  },
+  {
+    label: '待审核企业',
+    value: dataOverview.pendingCompanies,
+    trend: dataOverview.pendingCompanies ? '需处理' : '已清零',
+    tone: 'orange',
+    icon: 'solar:shield-check-bold-duotone',
+    desc: '等待认证资料、联系人和招聘说明核验'
+  },
+  {
+    label: '待审核岗位',
+    value: dataOverview.pendingJobs,
+    trend: dataOverview.pendingJobs ? '需处理' : '已清零',
+    tone: 'orange',
+    icon: 'solar:document-add-bold-duotone',
+    desc: '重点关注薪资范围、岗位级别和技能要求'
+  }
 ]
 
-export const adminTrend = [
-  { label: '周一', value: 42 },
-  { label: '周二', value: 58 },
-  { label: '周三', value: 64 },
-  { label: '周四', value: 73 },
-  { label: '周五', value: 86 },
-  { label: '周六', value: 71 },
-  { label: '周日', value: 94 }
-]
+export const adminTrend = LAST_7_DAYS.map(day => ({
+  label: day.slice(5),
+  value: demoApplications.filter(item => item.createdAt?.startsWith(day)).length
+}))
 
-export const jobCategory = [
-  { name: '技术研发', value: 42 },
-  { name: '产品运营', value: 24 },
-  { name: '市场销售', value: 18 },
-  { name: '职能支持', value: 16 }
-]
+export const jobCategory = toChartData(jobTypeMap)
+
+export const jobLevelDistribution = toChartData(jobLevelMap)
+
+export const cityDistribution = toChartData(cityMap).sort((a, b) => b.value - a.value)
+
+export const applyStatusDistribution = toChartData(applyStatusMap)
 
 export const auditProgress = [
-  { label: '企业认证通过', value: 184 },
-  { label: '岗位审核通过', value: 436 },
-  { label: '资料待补充', value: 38 }
+  { label: '企业认证通过', value: demoCompanies.filter(item => item.auditStatus === 'APPROVED').length },
+  { label: '企业待审核', value: dataOverview.pendingCompanies },
+  { label: '岗位审核通过', value: demoJobs.filter(item => item.auditStatus === 'APPROVED').length },
+  { label: '岗位待审核', value: dataOverview.pendingJobs }
 ]
 
 export const adminTodos = [
-  { title: '企业认证审核', desc: '18 家企业等待营业执照与联系人信息核验', level: '高' },
-  { title: '岗位发布审核', desc: '27 个岗位需要确认薪资、城市与任职要求', level: '中' },
-  { title: '面试邀请记录', desc: '今日新增 36 条面试邀请，需关注学生确认情况', level: '中' },
-  { title: '异常投递检查', desc: '2 条重复投递记录需要进一步核对', level: '低' }
+  {
+    title: '企业认证审核',
+    desc: `${dataOverview.pendingCompanies} 家企业等待核验，建议优先检查联系人、邮箱和校招说明。`,
+    level: '高'
+  },
+  {
+    title: '岗位发布审核',
+    desc: `${dataOverview.pendingJobs} 条岗位待审核，重点确认是否属于实习、应届、初级或管培生岗位。`,
+    level: '中'
+  },
+  {
+    title: '投递状态跟进',
+    desc: `当前投递状态覆盖已投递、已查看、邀请面试、已录用、已拒绝，便于展示完整流程。`,
+    level: '中'
+  },
+  {
+    title: '低匹配度提醒',
+    desc: 'AI 匹配分覆盖 47%-96%，可在答辩中展示高低匹配差异和简历优化价值。',
+    level: '低'
+  }
 ]
 
 export const aiStatus = [
-  { label: 'DeepSeek-V4-Pro 状态', value: '可演示', detail: '无 Key 自动切换模拟数据' },
-  { label: '今日 AI 调用次数', value: 126, detail: '较昨日 +18' },
-  { label: '简历优化次数', value: 68, detail: '学生端高频功能' },
-  { label: '岗位匹配次数', value: 42, detail: '平均匹配度 82%' }
+  { label: 'DeepSeek-V4-Pro 状态', value: '可演示', detail: '无 Key 自动切换丰富模拟数据' },
+  { label: '今日 AI 调用次数', value: 126, detail: '包含简历优化、岗位匹配和面试题生成' },
+  { label: '简历优化次数', value: 72, detail: '围绕应届生项目经历和技能关键词优化' },
+  { label: '岗位匹配次数', value: 54, detail: '匹配分覆盖 47%-96%，便于展示差异' }
 ]
 
 export const studentSummary = [
-  { label: '简历完整度', value: '86%', desc: '建议补充项目量化成果' },
-  { label: 'AI 推荐岗位', value: 18, desc: '基于技能标签与城市意向' },
-  { label: '待处理面试邀请', value: 3, desc: '2 个线上面试，1 个现场面试' }
+  { label: '简历完整度', value: '87%', desc: '项目经历、课程设计和实习意向较完整' },
+  { label: 'AI 推荐岗位', value: demoJobs.filter(item => item.auditStatus === 'APPROVED' && item.publishStatus === 'ONLINE').length, desc: '优先推荐实习、校招和初级岗位' },
+  { label: '待处理面试邀请', value: demoInterviews.filter(item => item.invitationStatus === 'PENDING').length, desc: '建议今日完成确认或改期沟通' }
 ]
 
-export const applyTimeline = [
-  { title: '完善简历', time: '今日 09:20', status: 'success' },
-  { title: 'AI 匹配岗位', time: '今日 10:05', status: 'success' },
-  { title: '投递 Java 后端岗位', time: '今日 10:18', status: 'primary' },
-  { title: '等待企业查看', time: '预计 24 小时内', status: 'warning' }
-]
+export const applyTimeline = demoApplications.slice(0, 8).map(item => ({
+  title: `${item.applyStatusText}：${item.companyName} ${item.jobName}`,
+  time: item.createdAt.slice(5, 16),
+  status: item.applyStatus === 'REJECTED' ? 'danger' : item.applyStatus === 'INTERVIEW' || item.applyStatus === 'OFFER' ? 'success' : 'primary'
+}))
 
-export const hotCompanies = [
-  { name: '云启科技', field: '企业服务 / 后端研发', jobs: 12 },
-  { name: '智聘数据', field: 'AI 招聘 / 产品运营', jobs: 8 },
-  { name: '星图软件', field: '可视化 / 前端开发', jobs: 6 }
-]
+const companyJobCount = demoCompanies.map(company => ({
+  ...company,
+  jobs: demoJobs.filter(job => job.companyName === company.companyName).length
+}))
+
+export const hotCompanies = companyJobCount
+  .sort((a, b) => b.jobs - a.jobs)
+  .slice(0, 10)
+  .map(item => ({
+    name: item.companyName,
+    field: `${item.industry} / ${item.city}`,
+    jobs: item.jobs,
+    city: item.city,
+    scale: item.companyScale
+  }))
 
 export const companyMetrics = [
-  { label: '发布中岗位', value: 12, trend: '+3 本周' },
-  { label: '收到简历数', value: 186, trend: '+34 今日' },
-  { label: '待处理投递', value: 28, trend: '需筛选' },
-  { label: '面试安排', value: 16, trend: '本周' }
+  { label: '发布中岗位', value: dataOverview.onlineJobs, trend: `${jobTypeMap['实习'] || 0} 个实习岗` },
+  { label: '收到简历数', value: dataOverview.applications, trend: `${dataOverview.todayApplications} 条今日新增` },
+  { label: '待处理投递', value: demoApplications.filter(item => ['PENDING', 'VIEWED'].includes(item.applyStatus)).length, trend: '需筛选' },
+  { label: '面试安排', value: dataOverview.interviews, trend: '本月安排' }
 ]
 
-export const candidates = [
-  { name: '张同学', role: 'Java 后端开发', school: '示例大学', match: 91, status: '建议邀约' },
-  { name: '李同学', role: '前端开发', school: '信息工程学院', match: 87, status: '待查看' },
-  { name: '王同学', role: '产品助理', school: '管理学院', match: 82, status: '进入面试' }
-]
+export const candidates = demoApplications
+  .slice(0, 10)
+  .map(item => ({
+    name: item.studentName,
+    role: item.jobName,
+    school: demoStudents.find(student => student.userId === item.studentUserId)?.school || '校园招聘候选人',
+    match: item.aiMatchScore,
+    status: item.applyStatusText
+  }))
 
-export const companyTrend = [
-  { label: '周一', value: 18 },
-  { label: '周二', value: 24 },
-  { label: '周三', value: 31 },
-  { label: '周四', value: 28 },
-  { label: '周五', value: 39 },
-  { label: '周六', value: 26 },
-  { label: '周日', value: 34 }
+export const companyTrend = LAST_7_DAYS.map(day => ({
+  label: day.slice(5),
+  value: demoApplications.filter(item => item.createdAt?.startsWith(day)).length
+}))
+
+export const hotJobRanking = [...demoJobs]
+  .sort((a, b) => b.aiHeat - a.aiHeat)
+  .slice(0, 10)
+  .map(job => ({ name: job.jobName, company: job.companyName, value: job.aiHeat }))
+
+export const recruitmentConversion = [
+  { label: '岗位发布', value: dataOverview.jobs, percent: 100 },
+  { label: '简历投递', value: dataOverview.applications, percent: 86 },
+  { label: '企业已查看', value: demoApplications.filter(item => ['VIEWED', 'INTERVIEW', 'OFFER', 'REJECTED'].includes(item.applyStatus)).length, percent: 72 },
+  { label: '面试邀请', value: dataOverview.interviews, percent: percent(dataOverview.interviews, dataOverview.applications) },
+  { label: '录用推进', value: demoApplications.filter(item => item.applyStatus === 'OFFER').length, percent: percent(demoApplications.filter(item => item.applyStatus === 'OFFER').length, dataOverview.applications) }
 ]

@@ -2,7 +2,7 @@
   <div class="page" v-auto-animate>
     <AppPageHeader
       title="学生求职工作台"
-      desc="系统根据简历完整度、技能标签、城市意向和岗位要求生成推荐结果，帮助学生完成岗位筛选、简历优化与面试准备。"
+      desc="根据简历完整度、技能标签、城市意向和岗位要求展示推荐结果，帮助学生完成岗位筛选、简历优化与面试准备。"
       eyebrow="AI 求职推荐工作台"
       icon="solar:graduation-cap-bold-duotone"
     >
@@ -13,7 +13,7 @@
       </template>
     </AppPageHeader>
 
-    <section class="grid grid-3" style="margin-top:18px;">
+    <section class="grid grid-3 page-gap">
       <AppStatCard
         v-for="(item, index) in summaryCards"
         :key="item.label"
@@ -26,25 +26,25 @@
       />
     </section>
 
-    <section class="grid grid-3" style="margin-top:18px;">
+    <section class="grid grid-3 page-gap">
       <AppPanel title="AI 推荐岗位" desc="按简历技能、城市意向和岗位要求综合排序" class="wide-card" :hover="false">
         <template #actions>
           <el-tag type="primary" effect="plain">按匹配度排序</el-tag>
         </template>
         <div class="job-card-list" v-auto-animate>
-          <div v-for="job in recommendedJobs" :key="job.title" class="job-card">
+          <div v-for="job in recommendedJobs" :key="`${job.company}-${job.title}`" class="job-card">
             <div class="job-card-head">
               <div>
                 <h3>{{ job.title }}</h3>
                 <div class="muted">{{ job.company }} · {{ job.city }}</div>
               </div>
-              <strong style="color:var(--color-primary);">{{ job.salary }}</strong>
+              <strong class="salary-text">{{ job.salary }}</strong>
             </div>
             <AppTagGroup style="margin-top:12px;" :tags="job.tags" />
             <div class="progress-line">
-              <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+              <div class="row-between">
                 <span class="muted">AI 匹配度</span>
-                <strong style="color:var(--title);">{{ job.match }}%</strong>
+                <strong>{{ job.match }}%</strong>
               </div>
               <el-progress :percentage="job.match" :show-text="false" :stroke-width="10" />
             </div>
@@ -61,7 +61,7 @@
       </AppAiCard>
     </section>
 
-    <section class="grid grid-3" style="margin-top:18px;">
+    <section class="grid grid-3 page-gap">
       <AppPanel title="投递进度时间线" desc="跟踪求职流程中的关键状态" :hover="false">
         <el-timeline>
           <el-timeline-item v-for="item in applyTimeline" :key="item.title" :type="item.status" :timestamp="item.time">
@@ -70,7 +70,7 @@
         </el-timeline>
       </AppPanel>
 
-      <AppPanel title="热门企业" desc="根据岗位热度和企业活跃度推荐" :hover="false">
+      <AppPanel title="热门企业" desc="根据岗位数量和企业活跃度推荐" :hover="false">
         <div class="candidate-list" v-auto-animate>
           <div v-for="item in hotCompanies" :key="item.name" class="candidate-item">
             <div class="candidate-head">
@@ -117,3 +117,20 @@ const summaryCards = computed(() => studentSummary.map((item, index) => ({
       : 'solar:calendar-mark-bold-duotone'
 })))
 </script>
+
+<style scoped>
+.page-gap {
+  margin-top: 18px;
+}
+
+.salary-text,
+.row-between strong {
+  color: var(--color-primary);
+}
+
+.row-between {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+</style>

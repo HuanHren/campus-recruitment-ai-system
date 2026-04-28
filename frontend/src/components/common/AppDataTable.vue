@@ -46,7 +46,9 @@ defineProps({
 
 .app-data-table__pagination {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 16px;
   margin-top: 18px;
   padding-top: 14px;
   border-top: 1px solid #eef2f7;
