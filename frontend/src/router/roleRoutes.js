@@ -16,9 +16,11 @@ export const roleNavigation = Object.freeze({
       ]
     },
     {
-      group: '招聘管理',
+      group: '后台管理',
       children: [
-        { title: '岗位审核', path: '/jobs', icon: 'Briefcase' },
+        { title: '学生信息管理', path: '/admin/students', icon: 'User' },
+        { title: '企业信息管理', path: '/admin/companies', icon: 'OfficeBuilding' },
+        { title: '岗位管理', path: '/admin/jobs', icon: 'Briefcase' },
         { title: '面试记录', path: '/interviews', icon: 'Promotion' }
       ]
     },

@@ -3,6 +3,9 @@ import Login from '../views/auth/Login.vue'
 import Register from '../views/auth/Register.vue'
 import MainLayout from '../layouts/MainLayout.vue'
 import AdminHome from '../views/home/AdminHome.vue'
+import AdminStudents from '../views/admin/AdminStudents.vue'
+import AdminCompanies from '../views/admin/AdminCompanies.vue'
+import AdminJobs from '../views/admin/AdminJobs.vue'
 import StudentHome from '../views/home/StudentHome.vue'
 import CompanyHome from '../views/home/CompanyHome.vue'
 import TeacherHome from '../views/home/TeacherHome.vue'
@@ -38,6 +41,21 @@ const routes = [
         path: 'admin',
         component: AdminHome,
         meta: { roles: adminOnly, title: '管理员首页', subtitle: '审核企业和岗位，查看平台流程数据' }
+      },
+      {
+        path: 'admin/students',
+        component: AdminStudents,
+        meta: { roles: adminOnly, title: '学生信息管理', subtitle: '查看学生基础资料列表' }
+      },
+      {
+        path: 'admin/companies',
+        component: AdminCompanies,
+        meta: { roles: adminOnly, title: '企业信息管理', subtitle: '查看企业资料并处理审核状态' }
+      },
+      {
+        path: 'admin/jobs',
+        component: AdminJobs,
+        meta: { roles: adminOnly, title: '岗位管理', subtitle: '查看岗位列表并处理岗位审核' }
       },
       {
         path: 'student',
