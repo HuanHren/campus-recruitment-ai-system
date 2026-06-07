@@ -1,96 +1,89 @@
 <template>
-  <div class="auth-shell">
-    <section class="auth-left">
-      <div class="brand-row">
-        <span class="brand-mark"><Icon icon="solar:cpu-bolt-bold-duotone" /></span>
+  <div class="auth-entry">
+    <section class="auth-story">
+      <div class="auth-brand">
+        <span class="auth-brand__mark"><Icon icon="solar:case-round-bold-duotone" /></span>
         <div>
-          <div>AI 校园招聘系统</div>
-          <small style="color: var(--muted); font-weight: 700;">Campus Recruitment AI SaaS</small>
+          <strong>AI 校园招聘系统</strong>
+          <small>Spring Boot + Vue 毕业设计</small>
         </div>
       </div>
 
-      <div class="auth-title">
-        <span class="ai-chip"><Icon icon="solar:stars-bold-duotone" /> DeepSeek-V4-Pro 智能就业助手</span>
-        <h1>让校园招聘从流程管理升级为智能决策</h1>
+      <div class="auth-story__content">
+        <span class="auth-kicker"><Icon icon="solar:stars-bold-duotone" /> 真实角色工作台</span>
+        <h1>登录后进入对应的招聘流程</h1>
         <p>
-          面向学生、企业、就业老师与管理员的现代化招聘平台，覆盖简历优化、岗位匹配、投递追踪和面试邀请全流程。
+          管理员审核企业和岗位，学生维护简历并投递岗位，企业发布岗位并处理投递。教师模块当前仅保留占位入口。
         </p>
       </div>
 
-      <div class="auth-illustration">
-        <div class="smart-board">
-          <div style="display:flex;align-items:center;justify-content:space-between;">
-            <strong style="color:var(--title);">岗位匹配分析</strong>
-            <el-tag type="primary" effect="plain">AI 92%</el-tag>
-          </div>
-          <div class="smart-line"><span style="width:92%;" /></div>
-          <div class="smart-line"><span style="width:78%; background:linear-gradient(90deg,var(--purple),var(--cyan));" /></div>
-          <div class="smart-line"><span style="width:64%; background:linear-gradient(90deg,var(--green),var(--cyan));" /></div>
-          <p style="margin:12px 0 0;color:var(--muted);font-size:13px;line-height:1.6;">
-            根据技能标签、项目经历和岗位要求生成匹配建议。
-          </p>
-        </div>
-        <div class="candidate-float">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <el-avatar :size="38" style="background:linear-gradient(135deg,var(--blue),var(--purple));">AI</el-avatar>
-            <div>
-              <strong style="color:var(--title);">简历优化完成</strong>
-              <div style="color:var(--muted);font-size:12px;">项目成果表达增强 4 项</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="auth-highlights">
-        <div v-for="item in highlights" :key="item.title" class="auth-highlight">
-            <span class="icon-pill soft"><Icon :icon="item.icon" /></span>
-          <strong>{{ item.title }}</strong>
-          <span>{{ item.desc }}</span>
+      <div class="workflow-list" aria-label="核心流程">
+        <div v-for="item in flowSteps" :key="item.title" class="workflow-item">
+          <Icon :icon="item.icon" />
+          <span>{{ item.title }}</span>
         </div>
       </div>
     </section>
 
-    <section class="auth-panel">
-      <el-form ref="formRef" :model="form" :rules="rules" class="auth-card" @keyup.enter="submit">
-        <div class="brand-row">
-          <span class="brand-mark"><Icon icon="solar:case-round-bold-duotone" /></span>
+    <section class="auth-form-panel">
+      <el-form ref="formRef" :model="form" :rules="rules" class="auth-card" label-position="top" @keyup.enter="submit">
+        <div class="form-heading">
+          <span class="form-heading__icon"><Icon icon="solar:user-check-rounded-bold-duotone" /></span>
           <div>
-            <div>欢迎登录</div>
-            <small style="color:var(--muted);font-weight:700;">毕业设计演示平台</small>
+            <h2>进入工作台</h2>
+            <p>使用示例账号快速体验对应角色权限。</p>
           </div>
         </div>
-        <h2>进入招聘工作台</h2>
-        <p class="auth-sub">选择角色示例账号，体验对应的业务工作流与 AI 能力。</p>
 
-        <div class="role-segment" aria-label="角色切换">
+        <div class="role-grid" aria-label="示例账号">
           <button
             v-for="item in quickUsers"
             :key="item.username"
             type="button"
+            class="role-card"
             :class="{ active: form.username === item.username }"
             @click="fill(item)"
           >
-            {{ item.label }}
+            <Icon :icon="item.icon" />
+            <span>{{ item.label }}</span>
+            <small>{{ item.desc }}</small>
           </button>
         </div>
 
-        <el-form-item prop="username">
-          <el-input v-model="form.username" size="large" placeholder="用户名">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="form.username" size="large" placeholder="请输入用户名" autocomplete="username">
             <template #prefix><Icon icon="solar:user-rounded-bold-duotone" /></template>
           </el-input>
         </el-form-item>
-        <el-form-item prop="password">
-          <el-input v-model="form.password" size="large" placeholder="密码" show-password>
+
+        <el-form-item label="密码" prop="password">
+          <el-input
+            v-model="form.password"
+            size="large"
+            placeholder="请输入密码"
+            show-password
+            autocomplete="current-password"
+          >
             <template #prefix><Icon icon="solar:lock-password-bold-duotone" /></template>
           </el-input>
         </el-form-item>
 
-        <el-button type="primary" size="large" style="width:100%;height:46px;" :loading="loading" @click="submit">
+        <el-alert
+          v-if="form.username === 'teacher'"
+          class="auth-note"
+          title="教师角色当前仅有占位入口，后端暂无教师业务 API。"
+          type="warning"
+          :closable="false"
+          show-icon
+        />
+
+        <el-button type="primary" size="large" class="submit-button" :loading="loading" @click="submit">
           登录系统
         </el-button>
+
         <div class="auth-footer-link">
           还没有账号？
-          <router-link to="/register">立即注册</router-link>
+          <router-link to="/register">注册学生、企业或教师账号</router-link>
         </div>
       </el-form>
     </section>
@@ -109,18 +102,21 @@ const auth = useAuthStore()
 const formRef = ref()
 const loading = ref(false)
 const form = reactive({ username: 'admin', password: '123456' })
+
 const quickUsers = [
-  { label: '管理员', username: 'admin' },
-  { label: '学生', username: 'student' },
-  { label: '企业', username: 'company' },
-  { label: '就业老师', username: 'teacher' }
+  { label: '管理员', username: 'admin', desc: '审核企业与岗位', icon: 'solar:shield-user-bold-duotone' },
+  { label: '学生', username: 'student', desc: '简历与投递流程', icon: 'solar:graduation-cap-bold-duotone' },
+  { label: '企业', username: 'company', desc: '岗位与面试管理', icon: 'solar:buildings-2-bold-duotone' },
+  { label: '教师', username: 'teacher', desc: '占位入口', icon: 'solar:users-group-rounded-bold-duotone' }
 ]
-const highlights = [
-  { title: 'AI 简历优化', desc: '优化项目表达与关键词匹配', icon: 'solar:document-text-bold-duotone' },
-  { title: '智能岗位匹配', desc: '分析简历与岗位要求契合度', icon: 'solar:chart-2-bold-duotone' },
-  { title: '投递进度追踪', desc: '记录待查看、面试、拒绝等状态', icon: 'solar:route-bold-duotone' },
-  { title: '面试邀请管理', desc: '支持企业邀约与学生确认', icon: 'solar:calendar-mark-bold-duotone' }
+
+const flowSteps = [
+  { title: '岗位发布', icon: 'solar:case-round-bold-duotone' },
+  { title: '简历投递', icon: 'solar:paper-plane-bold-duotone' },
+  { title: 'AI 简历优化', icon: 'solar:stars-bold-duotone' },
+  { title: '面试邀约', icon: 'solar:calendar-mark-bold-duotone' }
 ]
+
 const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
@@ -143,3 +139,262 @@ async function submit() {
   }
 }
 </script>
+
+<style scoped>
+.auth-entry {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(420px, 0.92fr);
+  padding: 28px;
+  background: linear-gradient(135deg, #eaf2ff 0%, #f8fafc 50%, #eef6ff 100%);
+}
+
+.auth-story,
+.auth-form-panel {
+  min-height: calc(100vh - 56px);
+}
+
+.auth-story {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px;
+  border-radius: 18px;
+  color: #fff;
+  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+}
+
+.auth-brand,
+.form-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-brand__mark,
+.form-heading__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.auth-brand__mark {
+  color: #1d4ed8;
+  background: #fff;
+}
+
+.auth-brand strong,
+.auth-brand small {
+  display: block;
+}
+
+.auth-brand small {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.auth-story__content {
+  max-width: 720px;
+}
+
+.auth-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: #dbeafe;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.auth-story h1 {
+  max-width: 680px;
+  margin: 22px 0 0;
+  font-size: clamp(34px, 5vw, 60px);
+  line-height: 1.08;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.auth-story p {
+  max-width: 640px;
+  margin: 22px 0 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 17px;
+  line-height: 1.85;
+}
+
+.workflow-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.workflow-item {
+  min-height: 92px;
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-weight: 800;
+}
+
+.workflow-item svg {
+  font-size: 24px;
+}
+
+.auth-form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.auth-card {
+  width: min(480px, 100%);
+  padding: 32px;
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid var(--color-line);
+  box-shadow: var(--card-shadow);
+}
+
+.form-heading {
+  margin-bottom: 22px;
+}
+
+.form-heading__icon {
+  color: #fff;
+  background: var(--color-primary);
+}
+
+.form-heading h2 {
+  margin: 0;
+  color: var(--color-title);
+  font-size: 28px;
+  letter-spacing: 0;
+}
+
+.form-heading p {
+  margin: 5px 0 0;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.role-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.role-card {
+  min-height: 88px;
+  padding: 13px;
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+  background: #f8fafc;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--fast-transition), border-color var(--fast-transition), background-color var(--fast-transition), box-shadow var(--fast-transition);
+}
+
+.role-card svg,
+.role-card span,
+.role-card small {
+  display: block;
+}
+
+.role-card svg {
+  margin-bottom: 8px;
+  color: var(--color-primary);
+  font-size: 22px;
+}
+
+.role-card span {
+  color: var(--color-title);
+  font-weight: 900;
+}
+
+.role-card small {
+  margin-top: 3px;
+  color: var(--color-muted);
+  font-weight: 700;
+}
+
+.role-card:hover,
+.role-card.active {
+  transform: translateY(-1px);
+  border-color: #93c5fd;
+  background: #fff;
+  box-shadow: var(--soft-shadow);
+}
+
+.auth-note {
+  margin-bottom: 16px;
+}
+
+.submit-button {
+  width: 100%;
+  height: 46px;
+}
+
+.auth-footer-link {
+  margin-top: 18px;
+  text-align: center;
+  color: var(--color-muted);
+}
+
+.auth-footer-link a {
+  color: var(--color-primary);
+  font-weight: 800;
+}
+
+@media (max-width: 1080px) {
+  .auth-entry {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-story,
+  .auth-form-panel {
+    min-height: auto;
+  }
+
+  .auth-story {
+    gap: 34px;
+  }
+}
+
+@media (max-width: 640px) {
+  .auth-entry {
+    padding: 14px;
+  }
+
+  .auth-story,
+  .auth-card {
+    padding: 24px;
+  }
+
+  .auth-form-panel {
+    padding: 16px 0 0;
+  }
+
+  .workflow-list,
+  .role-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
