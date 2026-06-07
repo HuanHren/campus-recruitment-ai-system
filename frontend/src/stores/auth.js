@@ -1,40 +1,61 @@
 import { defineStore } from 'pinia'
-import request from '../utils/request'
+import { getCurrentUser, login as loginApi, register as registerApi } from '../api/auth.api'
+import { TOKEN_STORAGE_KEY, USER_STORAGE_KEY } from '../api/http'
+import { getRoleHomePath } from '../constants/roles'
 
-const homeByRole = {
-  ADMIN: '/admin',
-  STUDENT: '/student',
-  COMPANY: '/company',
-  TEACHER: '/teacher'
+function readStoredUser() {
+  try {
+    return JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || 'null')
+  } catch {
+    localStorage.removeItem(USER_STORAGE_KEY)
+    return null
+  }
 }
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    token: localStorage.getItem('token') || '',
-    user: JSON.parse(localStorage.getItem('user') || 'null')
+    token: localStorage.getItem(TOKEN_STORAGE_KEY) || '',
+    user: readStoredUser()
   }),
   getters: {
     isLogin: (state) => Boolean(state.token),
     role: (state) => state.user?.role,
-    homePath: (state) => homeByRole[state.user?.role] || '/login'
+    homePath: (state) => getRoleHomePath(state.user?.role)
   },
   actions: {
+    persistAuth(token, user) {
+      this.token = token || ''
+      this.user = user || null
+      if (this.token) {
+        localStorage.setItem(TOKEN_STORAGE_KEY, this.token)
+      } else {
+        localStorage.removeItem(TOKEN_STORAGE_KEY)
+      }
+      if (this.user) {
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(this.user))
+      } else {
+        localStorage.removeItem(USER_STORAGE_KEY)
+      }
+    },
     async login(form) {
-      const res = await request.post('/auth/login', form)
-      this.token = res.data.token
-      this.user = res.data.user
-      localStorage.setItem('token', this.token)
-      localStorage.setItem('user', JSON.stringify(this.user))
+      const res = await loginApi(form)
+      this.persistAuth(res.data.token, res.data.user)
       return this.homePath
     },
     async register(form) {
-      await request.post('/auth/register', form)
+      await registerApi(form)
+    },
+    async fetchCurrentUser() {
+      if (!this.token) {
+        return null
+      }
+      const res = await getCurrentUser()
+      this.user = res.data
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(this.user))
+      return this.user
     },
     logout() {
-      this.token = ''
-      this.user = null
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
+      this.persistAuth('', null)
     }
   }
 })
