@@ -10,6 +10,9 @@ import StudentHome from '../views/home/StudentHome.vue'
 import CompanyHome from '../views/home/CompanyHome.vue'
 import TeacherHome from '../views/home/TeacherHome.vue'
 import StudentInfo from '../views/student/StudentInfo.vue'
+import StudentJobs from '../views/student/StudentJobs.vue'
+import StudentApplications from '../views/student/StudentApplications.vue'
+import StudentInterviews from '../views/student/StudentInterviews.vue'
 import CompanyInfo from '../views/company/CompanyInfo.vue'
 import JobList from '../views/jobs/JobList.vue'
 import JobPublish from '../views/jobs/JobPublish.vue'
@@ -81,6 +84,21 @@ const routes = [
         path: 'student-info',
         component: StudentInfo,
         meta: { roles: studentOnly, title: '学生信息', subtitle: '维护学生基础资料' }
+      },
+      {
+        path: 'student/jobs',
+        component: StudentJobs,
+        meta: { roles: studentOnly, title: '学生岗位浏览', subtitle: '浏览岗位详情并发起投递' }
+      },
+      {
+        path: 'student/applications',
+        component: StudentApplications,
+        meta: { roles: studentOnly, title: '我的投递', subtitle: '查看学生本人岗位投递状态' }
+      },
+      {
+        path: 'student/interviews',
+        component: StudentInterviews,
+        meta: { roles: studentOnly, title: '面试邀请', subtitle: '查看并回复学生本人面试邀请' }
       },
       {
         path: 'company-info',

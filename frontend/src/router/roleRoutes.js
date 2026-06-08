@@ -41,9 +41,9 @@ export const roleNavigation = Object.freeze({
     {
       group: '求职流程',
       children: [
-        { title: '岗位列表', path: '/jobs', icon: 'Briefcase' },
-        { title: '投递记录', path: '/applications', icon: 'Postcard' },
-        { title: '面试邀请', path: '/interviews', icon: 'Promotion' }
+        { title: '岗位浏览', path: '/student/jobs', icon: 'Briefcase' },
+        { title: '投递记录', path: '/student/applications', icon: 'Postcard' },
+        { title: '面试邀请', path: '/student/interviews', icon: 'Promotion' }
       ]
     },
     {
