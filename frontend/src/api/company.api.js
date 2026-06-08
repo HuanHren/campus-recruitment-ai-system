@@ -43,3 +43,7 @@ export function updateApplicationStatus(id, body) {
 export function sendInterviewInvitation(body) {
   return http.post('/company/interviews', body)
 }
+
+export function createCompanyInterview(body) {
+  return http.post('/company/interviews', body)
+}

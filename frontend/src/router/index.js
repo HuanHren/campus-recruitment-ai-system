@@ -14,6 +14,9 @@ import StudentJobs from '../views/student/StudentJobs.vue'
 import StudentApplications from '../views/student/StudentApplications.vue'
 import StudentInterviews from '../views/student/StudentInterviews.vue'
 import CompanyInfo from '../views/company/CompanyInfo.vue'
+import CompanyProfile from '../views/company/CompanyProfile.vue'
+import CompanyJobs from '../views/company/CompanyJobs.vue'
+import CompanyApplications from '../views/company/CompanyApplications.vue'
 import JobList from '../views/jobs/JobList.vue'
 import JobPublish from '../views/jobs/JobPublish.vue'
 import ResumeManage from '../views/resume/ResumeManage.vue'
@@ -104,6 +107,21 @@ const routes = [
         path: 'company-info',
         component: CompanyInfo,
         meta: { roles: companyOnly, title: '企业信息', subtitle: '维护企业资料和入驻信息' }
+      },
+      {
+        path: 'company/profile',
+        component: CompanyProfile,
+        meta: { roles: companyOnly, title: '企业资料', subtitle: '维护企业认证资料和审核状态' }
+      },
+      {
+        path: 'company/jobs',
+        component: CompanyJobs,
+        meta: { roles: companyOnly, title: '岗位管理', subtitle: '发布、编辑和下架企业岗位' }
+      },
+      {
+        path: 'company/applications',
+        component: CompanyApplications,
+        meta: { roles: companyOnly, title: '投递处理', subtitle: '查看投递、更新状态并发起面试邀请' }
       },
       {
         path: 'jobs',

@@ -72,16 +72,14 @@ export const roleNavigation = Object.freeze({
     {
       group: '招聘流程',
       children: [
-        { title: '岗位列表', path: '/jobs', icon: 'Briefcase' },
-        { title: '发布岗位', path: '/job-publish', icon: 'Promotion' },
-        { title: '投递处理', path: '/applications', icon: 'Postcard' },
-        { title: '面试邀约', path: '/interviews', icon: 'Calendar' }
+        { title: '岗位管理', path: '/company/jobs', icon: 'Briefcase' },
+        { title: '投递处理', path: '/company/applications', icon: 'Postcard' }
       ]
     },
     {
       group: '企业资料',
       children: [
-        { title: '企业信息', path: '/company-info', icon: 'OfficeBuilding' }
+        { title: '企业资料', path: '/company/profile', icon: 'OfficeBuilding' }
       ]
     }
   ],
